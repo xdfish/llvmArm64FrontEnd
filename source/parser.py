@@ -20,7 +20,8 @@ def parse_asm(raw_asm):
     asm_raw = raw_asm.splitlines()
     curFunction = "nA"
 
-    for line in asm_raw:
+    asm_tmp = []
+    for i, line in enumerate(asm_raw):
         if "file format" in line:
             format = line.split("file format ")[1].split(" ")
             architecture = format[1]
@@ -33,7 +34,7 @@ def parse_asm(raw_asm):
                 asm.function = curFunction
                 asm.address = line[:9]
                 asm.hexValue = line[10:22].replace(" ", "")
-                params = line[23:-1]
+                params = line[24:]
                 if "\t" not in params:  #onlyInstruction
                     asm.instruction = params
                 else:
@@ -50,10 +51,14 @@ def parse_asm(raw_asm):
                                 p_arr.append(p)
                     
                     asm.params = p_arr
-                asm_list.append(asm)
-            elif line[17] == "<":       #Function
+                asm_tmp.append(asm)
+            elif line[17] == "<":           #Function
+                if len(asm_tmp) != 0:
+                    asm_list.append(asm_tmp)
+                    asm_tmp = []
                 curFunction = line[17:-1]
                 functionCount += 1
+
     print("PARSER (Overview) ---------------\n Architecture: \t\t{}\n Executeable Format:\t{} \n Instructions: \t\t{}\n Functions: \t\t{}\n Sucessfull:\t\t{}\n---------------------------------".format(architecture, execformat, len(asm_list), functionCount, parserStatus))
     return asm_list
 

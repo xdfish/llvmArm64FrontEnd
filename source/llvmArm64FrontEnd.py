@@ -10,6 +10,5 @@ def generate_llvm_ir_of_arm64(source, target):
         return -1
     asm_list = parser.parse_asm(asm_raw)
 
-
-
-generate_llvm_ir_of_arm64("tmp/prog", "")
+    #TEST ONLY!
+    return asm_list

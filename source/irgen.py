@@ -213,7 +213,7 @@ class ir_function:
 
 
 
-
+'''
 irfile = ir_file("test")
 #First Function
 func = irfile.add_function("i", 32, "add4", "#0")
@@ -245,3 +245,4 @@ f.add_return("i", 32, "%3")
 
 
 print(irfile.generate())
+'''

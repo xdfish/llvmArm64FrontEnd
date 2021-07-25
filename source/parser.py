@@ -1,6 +1,8 @@
 from log import log
 import os.path
 
+supported_register_types = ["w", "x", "v"]
+
 class asm_inst:
   def __init__(self, function="", address="", hexValue = "", instruction="", params = []):
     self.function = function
@@ -9,9 +11,60 @@ class asm_inst:
     self.instruction = instruction
     self.params = params
 
+class asm_param:
+    def __init__(self, value):
+        self.raw = value
+        self.value = value
+        if value == "lr" or "pc" or "sp":
+            self.type == "POINTER"
+        elif value[0] == "#":
+            self.type = "NUMBER"
+            self.value = value[1:]
+        elif value[0] in supported_register_types:
+            self.type = "REGISTER"
+            if value[0] == "w":
+                self.dtype = "i32"
+            if value[0] == "x":
+                self.dtype = "i64"
+            if value[0] == "v":
+                self.dtype = "float"
+            self.value = int(value[1:])
+            
+            if value <= 7:
+                self.ftype = "INPUT"
+            elif value == 8:
+                self.ftype = "OUTPUT"
+            else:
+                self.ftype = "UNKNOWN"
+
+        elif value[0] == "[" and value[-1] == "]":
+            self.type = "ADDRESS"
+            self.value = value[1:-1]
+
+
+class asm_function:
+    def __init__(self, name = ""):
+        self.name = name
+        self.instructions = []
+        self.input_parameter = []
+        self.return_parameter = None
+
+    def set_name(self, name):
+        self.name = name
+        
+    def add_instruction(self, instruction):
+        self.instructions.append(instruction)
+        for p in instruction.params:
+            if p.type == "REGISTER":
+                if p.ftype == "INPUT":
+                    self.input_parameter.append(p)
+                elif p.ftype == "OUTPUT":
+                    self.return_parameter = p
+                
+
 
 def parse_asm(raw_asm):
-    functionCount = 0
+    instCount = 0
     execformat = ""
     achritecture = ""
     parserStatus = True
@@ -20,7 +73,7 @@ def parse_asm(raw_asm):
     asm_raw = raw_asm.splitlines()
     curFunction = "nA"
 
-    asm_tmp = []
+    asm_fnc = asm_function()
     for i, line in enumerate(asm_raw):
         if "file format" in line:
             format = line.split("file format ")[1].split(" ")
@@ -51,15 +104,15 @@ def parse_asm(raw_asm):
                                 p_arr.append(p)
                     
                     asm.params = p_arr
-                asm_tmp.append(asm)
-            elif line[17] == "<":           #Function
+                
+                asm_fnc.add_instruction(asm)
+                instCount += 1
+            elif line[-1] == ":" and "of section" not in line:           #Function
                 if len(asm_tmp) != 0:
-                    asm_list.append(asm_tmp)
+                    asm_list.append(asm_fnc)
                     asm_tmp = []
                 curFunction = line[17:-1]
-                functionCount += 1
-
-    print("PARSER (Overview) ---------------\n Architecture: \t\t{}\n Executeable Format:\t{} \n Instructions: \t\t{}\n Functions: \t\t{}\n Sucessfull:\t\t{}\n---------------------------------".format(architecture, execformat, len(asm_list), functionCount, parserStatus))
+    print("PARSER (Overview) ---------------\n Architecture: \t\t{}\n Executeable Format:\t{} \n Instructions: \t\t{}\n Functions: \t\t{}\n Sucessfull:\t\t{}\n---------------------------------".format(architecture, execformat, instCount, len(asm_list), parserStatus))
     return asm_list
 
 

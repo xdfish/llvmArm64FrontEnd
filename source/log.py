@@ -1,4 +1,5 @@
 from datetime import datetime
+import os.path
 
 export_log = False
 
@@ -11,6 +12,6 @@ def log(module, msg):
 def export_log(txt):
     now = datetime.now()
     current_time = now.strftime("%H:%M:%S")
-    f = open("tmp/log.txt", "a")
+    f = open("../tmp/log.txt", "a")
     f.write("{} \t {}".format(now, txt))
     f.close()

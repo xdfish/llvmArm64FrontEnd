@@ -1,7 +1,7 @@
 from log import log
 import os.path
 
-supported_register_types = ["w", "x", "v"]
+supported_register_types = ["w", "x", "v"] #ONLY w,x and v supported for now
 
 class asm_inst:
   def __init__(self, function="", address="", hexValue = "", instruction="", params = []):
@@ -13,33 +13,59 @@ class asm_inst:
 
 class asm_param:
     def __init__(self, value):
+
         self.raw = value
         self.value = value
-        if value == "lr" or "pc" or "sp":
-            self.type == "POINTER"
-        elif value[0] == "#":
-            self.type = "NUMBER"
-            self.value = value[1:]
-        elif value[0] in supported_register_types:
-            self.type = "REGISTER"
-            if value[0] == "w":
-                self.dtype = "i32"
-            if value[0] == "x":
-                self.dtype = "i64"
-            if value[0] == "v":
-                self.dtype = "float"
-            self.value = int(value[1:])
-            
-            if value <= 7:
-                self.ftype = "INPUT"
-            elif value == 8:
-                self.ftype = "OUTPUT"
-            else:
-                self.ftype = "UNKNOWN"
+        self.ptype = "Sys_unkown" #ParameterType (Numbe, Pointer (address), Register)
+        self.ftype = "Sys_unkown" #FunctionType (Input, Output or GP-Register)
+        self.dtype = "Sys_unkown" #DataType (Integer, Float etc.)
 
+        #Preserver Registers (only those 3 are supported for now)
+        if value == "lr" or value == "pc" or value == "sp":
+            self.ptype = "POINTER"
+        
+        #Absolute Values
+        elif value[0] == "#":
+            self.ptype = "NUMBER"
+            self.value = value[1:]
+
+        #Registers
+        elif value[0] in supported_register_types:
+            self.ptype = "REGISTER"
+            if value[0] == "w":         #32Bit Integer
+                self.dtype = "i32"
+            if value[0] == "x":         #64Bit Integer
+                self.dtype = "i64"
+            if value[0] == "v":         #Float (128B to 8Bit) incomming
+                self.dtype = "float"
+            
+            #new value (absolute value)
+            if value[1:] == "zr":       #Zero Register
+                    self.value = 0
+                    self.ptype = "NUMBER"
+            else:
+                self.value = int(value[1:])
+
+                #Analyze Input/Output/GP
+                if self.value <= 7:
+                    self.ftype = "INPUT"
+                elif self.value == 8:
+                    self.ftype = "OUTPUT"
+                else:
+                    self.ftype = "GP"
+
+
+            
+
+        #(RAM) Address
         elif value[0] == "[" and value[-1] == "]":
-            self.type = "ADDRESS"
+            self.ptype = "ADDRESS"
             self.value = value[1:-1]
+        
+        #Unknown Types
+        else:
+            self.ptype = "UNKNOWN"
+
 
 
 class asm_function:
@@ -47,7 +73,7 @@ class asm_function:
         self.name = name
         self.instructions = []
         self.input_parameter = []
-        self.return_parameter = None
+        self.return_parameter = asm_param("INIT")
 
     def set_name(self, name):
         self.name = name
@@ -55,11 +81,14 @@ class asm_function:
     def add_instruction(self, instruction):
         self.instructions.append(instruction)
         for p in instruction.params:
-            if p.type == "REGISTER":
+            if p.ptype == "REGISTER":
                 if p.ftype == "INPUT":
                     self.input_parameter.append(p)
                 elif p.ftype == "OUTPUT":
                     self.return_parameter = p
+
+    def is_empty(self):
+        return len(self.instructions) == 0
                 
 
 
@@ -68,6 +97,7 @@ def parse_asm(raw_asm):
     execformat = ""
     achritecture = ""
     parserStatus = True
+
     asm_list = []
 
     asm_raw = raw_asm.splitlines()
@@ -80,38 +110,43 @@ def parse_asm(raw_asm):
             architecture = format[1]
             execformat = format[0]
 
-        if len(line) >= 24:
+        if len(line) >= 17:
             #Instruction
             if line[9] == ":":           #Instruction
                 asm = asm_inst()
                 asm.function = curFunction
                 asm.address = line[:9]
                 asm.hexValue = line[10:22].replace(" ", "")
-                params = line[24:]
+                params = line[24:].split("\t",1)[1]
                 if "\t" not in params:  #onlyInstruction
                     asm.instruction = params
                 else:
                     p = params.split("\t", 1)
                     asm.instruction = p[0]
                 
-                    p_arr = []
                     params = p[1].split(", ")
+                    tmp = []
                     for i, p in enumerate(params):
+                        param = None
                         if p[0] != "[": 
                             if p[-1] == "]":
-                                p_arr.append(params[i-1] + ", " + params[i])
+                                param = asm_param(params[i-1] + ", " + params[i])
+                                tmp.append(param)
                             else:
-                                p_arr.append(p)
-                    
-                    asm.params = p_arr
-                
+                                param = asm_param(p)
+                                tmp.append(param)
+
+                    asm.params = tmp.copy()
+
                 asm_fnc.add_instruction(asm)
                 instCount += 1
             elif line[-1] == ":" and "of section" not in line:           #Function
-                if len(asm_tmp) != 0:
+                if not asm_fnc.is_empty():
+                    asm_fnc.name = curFunction
                     asm_list.append(asm_fnc)
-                    asm_tmp = []
+                    asm_fnc = asm_function()
                 curFunction = line[17:-1]
+                
     print("PARSER (Overview) ---------------\n Architecture: \t\t{}\n Executeable Format:\t{} \n Instructions: \t\t{}\n Functions: \t\t{}\n Sucessfull:\t\t{}\n---------------------------------".format(architecture, execformat, instCount, len(asm_list), parserStatus))
     return asm_list
 

@@ -12,6 +12,9 @@ def log(module, msg):
 def export_log(txt):
     now = datetime.now()
     current_time = now.strftime("%H:%M:%S")
-    f = open("../tmp/log.txt", "a")
+    directory = "../tmp"
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    f = open(directory + "/log.txt", "a")
     f.write("{} \t {}".format(now, txt))
     f.close()

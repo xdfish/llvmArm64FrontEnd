@@ -22,11 +22,10 @@ def decompile(filename, export):
     if os.path.isfile(filename):
         subp_command = ["objdump", "-D", filename]
         p = subprocess.Popen(subp_command, stdout=subprocess.PIPE)
-        print()
         out, err = p.communicate()
         out = out.decode("utf-8")
         if export:
-            f = open("tmp/tmp.asm", "w")
+            f = open("../tmp/tmp.asm", "w")
             f.write(out)
             f.close()
         log(os.path.basename(__file__), "{} decompiled sucessfully".format(filename))

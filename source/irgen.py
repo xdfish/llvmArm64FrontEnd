@@ -1,15 +1,26 @@
+from enum import Enum
+
 class ir_file:
     def __init__(self, filename):
         self.source_filename = "{}.ll".format(filename)
-        self.target_datalayout = ""
-        self.target_triple = ""
+        self.target_datalayout = "e-m:o-i64:64-i128:128-n32:64-S128"
+        self.target_triple = "arm64-apple-macosx11.0.0"
         self.global_variables = []
         self.functions = []
         self.declartions = []
         self.attributes = []
         self.flags = []
 
-    def add_global_variable():
+    def add_source_filename(self, name):
+        self.source_filename = name
+
+    def add_target_datalayout(self, datalayout):
+        self.target_datalayout = datalayout
+
+    def add_target_triple(self, targettriple):
+        self.target_triple = targettriple
+
+    def add_global_variable(self):
         x = 0
 
     def add_function(self, return_dtype, return_size, name, attribute):
@@ -17,21 +28,35 @@ class ir_file:
         self.functions.append(f)
         return f
 
-    def add_declaration():
+    def add_declaration(self):
         x=0
     
-    def add_attributes():
+    def add_attributes(self):
         x=0
     
-    def add_flags():
+    def add_flags(self):
         x=0
 
     def generate(self):
         out = ""
+
+        out += "source_filename = \"{}\"".format(self.source_filename)
+        out += "target datalayout = \"{}\"".format(self.target_datalayout)
+        out += "target triple = \"{}\"".format(self.target_triple)
+        out += "\n"
+
+        for g in self.global_variables:
+            out += g.generate()
+
         for f in self.functions:
             out += f.generate()
         return out
-            
+
+# Global Variable
+class glob_variable:
+    def __init__(self, dtype, value, name):
+        if dtype == "str":
+            x=0
     
 # Input Parameter
 class inp_param:
@@ -179,10 +204,10 @@ class ir_function:
         self.instructions.append(inst_add(target, dtype, size, op1, op2, nsw))
 
     def add_sub(self, target, dtype, size, op1, op2, nsw):
-        self.instructions.append(inst_add(target, dtype, size, op1, op2, nsw))
+        self.instructions.append(inst_sub(target, dtype, size, op1, op2, nsw))
 
-    def add_mult(self, target, dtype, size, op1, op2, nsw):
-        self.instructions.append(inst_add(target, dtype, size, op1, op2, nsw))
+    def add_mul(self, target, dtype, size, op1, op2, nsw):
+        self.instructions.append(inst_mul(target, dtype, size, op1, op2, nsw))
 
     def add_call(self, target, dtype, size, f_name):
         f = inst_call(target, dtype, size, f_name)

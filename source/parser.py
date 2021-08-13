@@ -233,11 +233,27 @@ class asm_function:
             self.input_parameter.remove(i)
             
 class parsed_asm_list:
+    """
+    Parsed asm list
+
+    :param functions:   list with all asm_functions
+    :type functions:    list[asm_function]
+    :param const_str:   function with the string constants
+    :type const_str:    asm_function
+    """
     def __init__(self):
+        """
+        Inititaliz the parsed asm list
+        """
         self.functions = []
         self.const_str = None
 
     def append_function(self, function : asm_function):
+        """Adds an function to the parsed asm list
+
+        :param function: the function to be added
+        :type function: asm_function
+        """
         self.functions.append(function)
         if function.name == "__cstring":
             print("string addded :)")

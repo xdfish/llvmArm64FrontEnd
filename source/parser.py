@@ -319,6 +319,10 @@ def parse_asm(raw_asm: str) -> parsed_asm_list:
                 instCount += 1
             elif line[-1] == ":" and "of section" not in line:           #Function
                 if not asm_fnc.is_empty():
+                    #For the latest OBJDUMP (on M1 Mac): - -
+                    if curFunction[0] == "<" and curFunction[-1] == ">":
+                        curFunction = curFunction[1:-1]
+                    # - - - - - - - - - - - - - - - - - - - -
                     asm_fnc.name = curFunction
                     asm_fnc.clean()
                     asm_list.append_function(asm_fnc)

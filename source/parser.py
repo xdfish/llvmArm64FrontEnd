@@ -294,7 +294,7 @@ def parse_asm(raw_asm: str) -> parsed_asm_list:
                 asm.function = curFunction
                 asm.address = line[:9]
                 asm.hexValue = line[10:22].replace(" ", "")
-                params = line[24:].split("\t",1)[1]
+                params = line[22:].split("\t",1)[1]
                 if "\t" not in params:  #onlyInstruction
                     asm.instruction = params
                 else:

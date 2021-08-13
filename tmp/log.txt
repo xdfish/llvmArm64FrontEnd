@@ -104,3 +104,5 @@
 2021-07-26 14:01:40.904499 	 disasmler.py:		../tmp/prog decompiled sucessfully
 2021-07-26 14:02:38.246877 	 disasmler.py:		../tmp/prog decompiled sucessfully
 2021-07-26 14:07:24.486050 	 disasmler.py:		../tmp/prog decompiled sucessfully
+2021-08-12 12:13:57.478985 	 disasmler.py:		../tmp/prog decompiled sucessfully
+2021-08-12 13:09:29.180426 	 disasmler.py:		../tmp/prog decompiled sucessfully

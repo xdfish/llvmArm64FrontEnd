@@ -22,26 +22,6 @@ Disassembly of section __TEXT,__text:
 100003e28: ff 43 00 91 	add	sp, sp, #16
 100003e2c: c0 03 5f d6 	ret
 
-0000000100003e30 <_doMore>:
-100003e30: ff 83 00 d1 	sub	sp, sp, #32
-100003e34: e0 1f 00 b9 	str	w0, [sp, #28]
-100003e38: e1 1b 00 b9 	str	w1, [sp, #24]
-100003e3c: e2 17 00 b9 	str	w2, [sp, #20]
-100003e40: e3 13 00 b9 	str	w3, [sp, #16]
-100003e44: e8 1f 40 b9 	ldr	w8, [sp, #28]
-100003e48: e9 1b 40 b9 	ldr	w9, [sp, #24]
-100003e4c: 08 01 09 0b 	add	w8, w8, w9
-100003e50: e8 0f 00 b9 	str	w8, [sp, #12]
-100003e54: e8 17 40 b9 	ldr	w8, [sp, #20]
-100003e58: e9 13 40 b9 	ldr	w9, [sp, #16]
-100003e5c: 08 7d 09 1b 	mul	w8, w8, w9
-100003e60: e8 0b 00 b9 	str	w8, [sp, #8]
-100003e64: e8 0f 40 b9 	ldr	w8, [sp, #12]
-100003e68: e9 0b 40 b9 	ldr	w9, [sp, #8]
-100003e6c: 00 01 09 0b 	add	w0, w8, w9
-100003e70: ff 83 00 91 	add	sp, sp, #32
-100003e74: c0 03 5f d6 	ret
-
 0000000100003e78 <_main>:
 100003e78: ff c3 00 d1 	sub	sp, sp, #48
 100003e7c: fd 7b 02 a9 	stp	x29, x30, [sp, #32]

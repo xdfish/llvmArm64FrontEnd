@@ -13,7 +13,6 @@ def generate_llvm_ir_of_arm64(source, target):
     if asm_raw == False:
         return False
     asm_parsed = parser.parse_asm(asm_raw)
-    
     converter.analyze_asm(asm_parsed)
 
 #TEST

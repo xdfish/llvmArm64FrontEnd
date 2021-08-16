@@ -9,32 +9,42 @@ from source.parser import asm_type_ftype
 from source.parser import asm_type_dtype
 
 detail_count = 1
-detail_show = False
+detail_show = True
 
 
-def rename_variables(fnc: asm_function):
+def prepare_for_conversion(fnc: asm_function):
+    
     translation = {}
+    removeable: list[asm_inst] = []
+
     for i in fnc.instructions:
+        #Mark removeable Stackpointer operations
+        if len(i.params) > 0:
+            if i.params[0].ptype.value == asm_type_ptype.sp_pointer.value:
+                removeable.append(i)
+                continue
+        
+        #Rename Variables
         for p in i.params:
             if p.ptype.value is asm_type_ptype.sp_address.value:
                 if p.value not in translation:
                     translation[p.value] = "t{}".format(len(translation))
                 p.value = translation[p.value]
             elif p.ptype.value is asm_type_ptype.register.value:
-                p.value = "r{}".format(p.value)
-        print("{}".format(i))
-            
+                p.value = "r{}".format(p.value) 
+    
+    for r in removeable:
+        fnc.instructions.remove(r)            
 
-            #print(isinstance(p.ptype, type(asm_type_ptype.address)))
-            #print(type(p.ptype) is asm_type_ptype.address)
+    if detail_show:
+        show_details_prepare(fnc.name, len(removeable), translation)
 
-            #print(p.value)
-            #print(p.ptype)
+
 
 def analyze_function(fnc: asm_function):
     if detail_show:
-        show_details(fnc)
-    rename_variables(fnc)
+        show_details_overview(fnc)
+    prepare_for_conversion(fnc)
 
 
 
@@ -76,9 +86,17 @@ def analyze_asm(asm_list: parsed_asm_list):
 
     for fnc in asm_list.functions:
         analyze_function(fnc)
-        
 
-def show_details(asm_fnc: asm_function):
+
+def show_details_prepare(function_name, removeable_count, translation):
+    print("  Preparation Overview for {}".format(function_name))
+    print("\t|-> Del. Instructions:\t{}".format(removeable_count))
+    print("\t'-> Renamed variables:\t{}\n".format(len(translation)))
+    for t in translation:
+        print("\t{} -> {}".format(t, translation[t]))
+        
+    print("\n")
+def show_details_overview(asm_fnc: asm_function):
     """
     Prints function details, of the parsed asm_functions
 
@@ -86,9 +104,9 @@ def show_details(asm_fnc: asm_function):
     :type asm_fnc: asm_fnc
     """
     global detail_count
-    print("{}. Function:".format(detail_count))
-    print("\tNAME \t\t\t{}".format(asm_fnc.name))
-    print("\tRETURN TYPE: \t\t{}".format(asm_fnc.return_parameter.dtype))
-    print("\tINSTRUCTIONS: \t\t{}".format(len(asm_fnc.instructions)))
-    print("\tINPUT PARAMETER: \t{}\n".format(len(asm_fnc.input_parameter)))
+    print("  {}. Function:".format(detail_count))
+    print("\t|-> Name \t\t{}".format(asm_fnc.name))
+    print("\t|-> Return Type: \t{}".format(asm_fnc.return_parameter.dtype))
+    print("\t|-> Instructions: \t{}".format(len(asm_fnc.instructions)))
+    print("\t'-> Input Parameter: \t{}\n".format(len(asm_fnc.input_parameter)))
     detail_count += 1

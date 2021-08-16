@@ -1,3 +1,4 @@
+import parser
 from log import log
 from enum import Enum
 import os.path
@@ -15,10 +16,13 @@ class asm_type_ptype(Enum):
     Describes the type of the parameter (Options below)
     """
     sys_init = "SYS_INIT"
-    pointer = "POINTER"
+    sp_pointer = "SP_POINTER"
+    lr_pointer = "LR_POINTER"
+    pc_pointer = "PC_POINTER"
     number = "NUMBER"
     register = "REGISTER"
     address = "ADDRESS"
+    sp_address = "SP_ADDRESS"
     unkown = "UNKNOWN"
 
 class asm_type_ftype(Enum):
@@ -35,6 +39,10 @@ class asm_type_dtype(Enum):
     """
     Possible Datatypes of the ARM-Registers.
     This also provides the supported register for tge parsing process
+    """
+    sys_init = "SYS_INIT"
+    """
+    Initial value
     """
     i32 = "w"     #W-Registers
     """
@@ -67,7 +75,6 @@ class asm_type_dtype(Enum):
 
 supported_register_types = set(reg.value for reg in asm_type_dtype)
 
-
 class asm_inst:
     def __init__(self, function : str = "", address : str = "", hexValue : str = "", instruction : str = "", params : list = []):
         """Inititalize a new asm_instruction
@@ -83,11 +90,19 @@ class asm_inst:
         :param params:      Parameters of the instruction, defaults to []
         :type params:       list[asm_param], optional
         """
-        self.function = function
-        self.address = address
-        self.hexValue = hexValue
-        self.instruction = instruction
-        self.params = params
+        self.function: str = function
+        self.address: str = address
+        self.hexValue: str = hexValue
+        self.instruction: str = instruction
+        self.params: list[asm_param] = params
+    
+    def __str__(self) -> str:
+        tmp = "{}\t".format(self.instruction)
+        for i, p in enumerate(self.params):
+            if i > 0:
+                tmp += ",\t"
+            tmp += "{}".format(p.value)
+        return tmp
 
 class asm_param:
     """
@@ -108,13 +123,17 @@ class asm_param:
         """
         self.raw : str = value
         self.value : any = value
-        self.ptype : any = "Sys_unkown" #ParameterType (Number, Pointer (address), Register)
-        self.ftype : any = "Sys_unkown" #FunctionType (Input, Output or GP-Register)
-        self.dtype : any = "Sys_unkown" #DataType (Integer, Float etc.)
+        self.ptype : asm_type_ptype = asm_type_ptype.sys_init #ParameterType (Number, Pointer (address), Register)
+        self.ftype : asm_type_ftype = asm_type_ftype.sys_init #FunctionType (Input, Output or GP-Register)
+        self.dtype : asm_type_dtype = asm_type_dtype.sys_init #DataType (Integer, Float etc.)
 
         #Preserver Registers (only those 3 are supported for now)
-        if value == "lr" or value == "pc" or value == "sp":
-            self.ptype = asm_type_ptype.pointer
+        if value == "sp":
+            self.ptype = asm_type_ptype.sp_pointer
+        elif value == "pc":
+            self.ptype = asm_type_ptype.pc_pointer
+        elif value == "lr":
+            self.ptype = asm_type_ptype.lr_pointer
         
         #Absolute Values
         elif value[0] == "#":
@@ -156,7 +175,10 @@ class asm_param:
 
         #(RAM) Address
         elif value[0] == "[" and value[-1] == "]":
-            self.ptype = asm_type_ptype.address
+            if value[1:3] == "sp":
+                self.ptype = asm_type_ptype.sp_address
+            else:
+                self.ptype = asm_type_ptype.address
             self.value = value[1:-1]
         
         #Unknown Types
@@ -256,7 +278,6 @@ class parsed_asm_list:
         """
         self.functions.append(function)
         if function.name == "__cstring":
-            print("string addded :)")
             self.const_str = function
 
 
@@ -272,7 +293,6 @@ def parse_asm(raw_asm: str) -> parsed_asm_list:
     """
     instCount = 0
     execformat = ""
-    achritecture = ""
     parserStatus = True
 
     asm_list = parsed_asm_list()

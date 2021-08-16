@@ -1,266 +1,43 @@
 from enum import Enum
 
-from parser import asm_inst
-from parser import asm_function
-from parser import asm_param
-from parser import parsed_asm_list
+from source.parser import asm_inst
+from source.parser import asm_function
+from source.parser import asm_param
+from source.parser import parsed_asm_list
+from source.parser import asm_type_ptype
+from source.parser import asm_type_ftype
+from source.parser import asm_type_dtype
 
 detail_count = 1
 detail_show = False
 
-class asm_type_ptype(Enum):
-    """
-    Parameter Types
-    Describes the type of the parameter (Options below)
-    """
-    sys_init = "SYS_INIT"
-    pointer = "POINTER"
-    number = "NUMBER"
-    register = "REGISTER"
-    address = "ADDRESS"
-    unkown = "UNKNOWN"
 
-class asm_type_ftype(Enum):
-    """
-    Functional Type od the Parameter
-    Describes the functional type of the parameter (Options below)
-    """
-    sys_init = "SYS_INIT"
-    input = "INPUT"
-    output = "OUTPUT"
-    general_purpose = "GP"
-
-class asm_type_dtype(Enum):
-    """
-    Possible Datatypes of the ARM-Registers.
-    This also provides the supported register for tge parsing process
-    """
-    i32 = "w"     #W-Registers
-    """
-    32Bit Integer (W-Register)
-    """
-    i64 = "x"     #X-Registers
-    """
-    64Bit Integer (X-Register)
-    """
-    f8 = "b"       #B-Registers
-    """
-    8Bit Float (B-Register)
-    """         
-    f16 = "h"     #H-Registers
-    """
-    16Bit Float (H-Register)
-    """
-    f32 = "s"     #S-Registers
-    """
-    32Bit Float (S-Register)
-    """
-    f64 = "d"     #D-Registers
-    """
-    64Bit Float (D-Register)
-    """
-    f128 = "q"   #Q-Registers
-    """
-    128Bit Float (Q-Register)
-    """
-
-class asm_inst:
-    def __init__(self, function : str = "", address : str = "", hexValue : str = "", instruction : str = "", params : list = []):
-        """Inititalize a new asm_instruction
-
-        :param function:    Name of the function, defaults to ""
-        :type function:     str, optional
-        :param address:     Address of the instruction, defaults to ""
-        :type address:      str, optional
-        :param hexValue:    Hex representation of the instruction, defaults to ""
-        :type hexValue:     str, optional
-        :param instruction: The instruction itself, defaults to ""
-        :type instruction:  str, optional
-        :param params:      Parameters of the instruction, defaults to []
-        :type params:       list[asm_param], optional
-        """
-        self.function = function
-        self.address = address
-        self.hexValue = hexValue
-        self.instruction = instruction
-        self.params = params
-
-class asm_param:
-    """
-        Assembler Parameter
-
-        :param value:   Value of the parameter
-        :param raw:     Raw-Value of the parameter (before init)
-        :param ptype:   Parameter-Type (Number, Pointer, Register)
-        :param ftype:   Function-Type, indicates if the parameter is an Input-, Output- or General Purpose register.
-        :param dtype:   Datatype of the given parameter
-    """
-    def __init__(self, value : str):
-        """
-        Initialize a asm_param by analyzing the given parameter value.
-
-        :param value:   Value of the parameter
-        :type value:    str
-        """
-        self.raw : str = value
-        self.value : any = value
-        self.ptype : any = "Sys_unkown" #ParameterType (Number, Pointer (address), Register)
-        self.ftype : any = "Sys_unkown" #FunctionType (Input, Output or GP-Register)
-        self.dtype : any = "Sys_unkown" #DataType (Integer, Float etc.)
-
-        #Preserver Registers (only those 3 are supported for now)
-        if value == "lr" or value == "pc" or value == "sp":
-            self.ptype = asm_type_ptype.pointer
-        
-        #Absolute Values
-        elif value[0] == "#":
-            self.ptype = asm_type_ptype.number
-            self.value = value[1:]
-
-        #Registers
-        elif value[0] in supported_register_types:
-            self.ptype = asm_type_ptype.register
-            if value[0] == "w":           #32Bit Integer
-                self.dtype = asm_type_dtype.i32
-            elif value[0] == "x":         #64Bit Integer
-                self.dtype = asm_type_dtype.i64
-            elif value[0] == "b":         #Float (128B to 8Bit) incomming
-                self.dtype = asm_type_dtype.f8
-            elif value[0] == "h":         #Float (128B to 8Bit) incomming
-                self.dtype = asm_type_dtype.f16
-            elif value[0] == "s":         #Float (128B to 8Bit) incomming
-                self.dtype = asm_type_dtype.f32
-            elif value[0] == "d":         #Float (128B to 8Bit) incomming
-                self.dtype = asm_type_dtype.f64
-            elif value[0] == "q":         #Float (128B to 8Bit) incomming
-                self.dtype = asm_type_dtype.f128
+def rename_variables(fnc: asm_function):
+    translation = {}
+    for i in fnc.instructions:
+        for p in i.params:
+            if p.ptype.value is asm_type_ptype.sp_address.value:
+                if p.value not in translation:
+                    translation[p.value] = "t{}".format(len(translation))
+                p.value = translation[p.value]
+            elif p.ptype.value is asm_type_ptype.register.value:
+                p.value = "r{}".format(p.value)
+        print("{}".format(i))
             
-            #new value (absolute value)
-            if value[1:] == "zr":       #Zero Register
-                    self.value = 0
-                    self.ptype = asm_type_ptype.number
-            else:
-                self.value = int(value[1:])
 
-                #Analyze Input/Output/GP
-                if self.value <= 7:
-                    self.ftype = asm_type_ftype.input
-                elif self.value == 8:
-                    self.ftype = asm_type_ftype.output
-                else:
-                    self.ftype = asm_type_ftype.general_purpose
+            #print(isinstance(p.ptype, type(asm_type_ptype.address)))
+            #print(type(p.ptype) is asm_type_ptype.address)
 
-        #(RAM) Address
-        elif value[0] == "[" and value[-1] == "]":
-            self.ptype = asm_type_ptype.address
-            self.value = value[1:-1]
-        
-        #Unknown Types
-        else:
-            self.ptype = asm_type_ptype.unkown
+            #print(p.value)
+            #print(p.ptype)
 
-class asm_function:
-    def __init__(self, name = ""):
-        """
-        Inititalize the asm_function
-
-        :param name: name of the function, defaults to ""
-        :type name: str, optional
-        """
-        self.name: str = name
-        self.instructions: list[asm_inst] = []
-        self.input_parameter: list[asm_param] = []
-        self.return_parameter: asm_param = asm_param("INIT")
-
-    def set_name(self, name: str):
-        """
-        Sets function name of the given function
-
-        :param name: name of the function
-        :type name: str
-        """
-        self.name = name
-        
-    def add_instruction(self, instruction: asm_inst):
-        """
-        Adds an instruction to the given asm_function
-
-        :param instruction: asm_ins to add
-        :type instruction: asm_inst
-        """
-        self.instructions.append(instruction)
-        for p in instruction.params:
-            if p.ptype == asm_type_ptype.register:
-                if p.ftype == asm_type_ftype.input:
-                    self.input_parameter.append(p)
-                elif p.ftype == asm_type_ftype.output:
-                    self.return_parameter = p
-
-    def is_empty(self) -> bool:
-        """
-        gives information about the amount in instructions in the given function
-        
-        :return: True if no instructions added to the function
-        :rtype: bool
-        """
-        return len(self.instructions) == 0
-
-    def clean(self):
-        """
-        Cleans the given asm_function by deleting all doubled input parameter.
-        A distinction is made between integer and float register ("W0 and X0" isn´t possible while "W0 and H0" is.)
-        """
-        known_int_register = []
-        known_float_register = []
-        deletable_params = []
-        for i in self.input_parameter:
-            if i.dtype == asm_type_dtype.i32 or i.dtype == asm_type_dtype.i64:
-                if i.value not in known_int_register:
-                    known_int_register.append(i.value)
-                else:
-                    deletable_params.append(i)
-            else:
-                if i.value not in known_float_register:
-                    known_float_register.append(i.value)
-                else:
-                    deletable_params.append(i)
-        for i in deletable_params:
-            self.input_parameter.remove(i)
-            
-class parsed_asm_list:
-    """
-    Parsed asm list
-
-    :param functions:   list with all asm_functions
-    :type functions:    list[asm_function]
-    :param const_str:   function with the string constants
-    :type const_str:    asm_function
-    """
-    def __init__(self):
-        """
-        Inititaliz the parsed asm list
-        """
-        self.functions = []
-        self.const_str = None
-
-    def append_function(self, function : asm_function):
-        """Adds an function to the parsed asm list
-
-        :param function: the function to be added
-        :type function: asm_function
-        """
-        self.functions.append(function)
-        if function.name == "__cstring":
-            print("string addded :)")
-            self.const_str = function
-
-
-
-def analyze_function(asm_fnc: asm_function):
+def analyze_function(fnc: asm_function):
     if detail_show:
-        show_details(asm_fnc)
+        show_details(fnc)
+    rename_variables(fnc)
 
-    
+
+
 def clean_function(fnc: asm_function):
     """
     Removes all (for the llvm-ir representation) unnecessary instructions and commands of the function
@@ -268,10 +45,12 @@ def clean_function(fnc: asm_function):
     :param fnc: [description]
     :type fnc: asm_function
     """
+    return
     
 
 def analyze_str_constants(asm_list: parsed_asm_list) -> list:
-    """Analyzes the __cstring section of the parsed asm list and returns the string constant in it
+    """
+    Analyzes the __cstring section of the parsed asm list and returns the string constant in it
 
     :param asm_list: parsed asm list, with the strong section in it
     :type asm_list: parsed_asm_list
@@ -294,22 +73,10 @@ def analyze_asm(asm_list: parsed_asm_list):
         return
     
     global_str_const = analyze_str_constants(asm_list)
-    
+
     for fnc in asm_list.functions:
         analyze_function(fnc)
         
-
-    
-
-
-
-
-
-
-
-
-
-
 
 def show_details(asm_fnc: asm_function):
     """

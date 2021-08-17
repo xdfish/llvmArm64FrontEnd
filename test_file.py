@@ -1,9 +1,7 @@
 from enum import Enum
+from source.irtypes import linkage_types
 
-test = {}
 
-test["a"] = "b"
+a: linkage_types = linkage_types.external
 
-print(test["a"])
-print("" in test)
-print(len(test))
+print(type(a.value))

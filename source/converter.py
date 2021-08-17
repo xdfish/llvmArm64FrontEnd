@@ -13,7 +13,6 @@ detail_show = True
 
 
 def prepare_for_conversion(fnc: asm_function):
-    
     translation = {}
     removeable: list[asm_inst] = []
 
@@ -32,7 +31,7 @@ def prepare_for_conversion(fnc: asm_function):
                 p.value = translation[p.value]
             elif p.ptype.value is asm_type_ptype.register.value:
                 p.value = "r{}".format(p.value) 
-    
+    #Remove marked instructions
     for r in removeable:
         fnc.instructions.remove(r)            
 
@@ -92,10 +91,14 @@ def show_details_prepare(function_name, removeable_count, translation):
     print("  Preparation Overview for {}".format(function_name))
     print("\t|-> Del. Instructions:\t{}".format(removeable_count))
     print("\t'-> Renamed variables:\t{}\n".format(len(translation)))
-    for t in translation:
-        print("\t{} -> {}".format(t, translation[t]))
-        
-    print("\n")
+    
+    if len(translation) > 0:
+        print("\tVariables renametable:")
+        for t in translation:
+            print("\t{} -> {}".format(t, translation[t]))
+        print("\n")
+    print("---------------------------------")
+
 def show_details_overview(asm_fnc: asm_function):
     """
     Prints function details, of the parsed asm_functions
@@ -104,6 +107,7 @@ def show_details_overview(asm_fnc: asm_function):
     :type asm_fnc: asm_fnc
     """
     global detail_count
+    print("CONVERTER (Overview) ------------")
     print("  {}. Function:".format(detail_count))
     print("\t|-> Name \t\t{}".format(asm_fnc.name))
     print("\t|-> Return Type: \t{}".format(asm_fnc.return_parameter.dtype))

@@ -184,9 +184,166 @@ class comdat_types(Enum):
     See https://llvm.org/docs/LangRef.html#langref-comdats more informations
     """
     # https://llvm.org/docs/LangRef.html#langref-comdats
-    any = "comdat any"
-    exactmatch = "comdat exactmatch"
-    largest = "comdat largest"
-    nodeduplicate = "comdat nodeduplicate"
-    samesize = "comdat samesize"
+    any = "any"
+    exactmatch = "exactmatch"
+    largest = "largest"
+    nodeduplicate = "nodeduplicate"
+    samesize = "samesize"
+
+
+class ir_dtype(Enum):
+    """
+    LLVM Data Types (Single Value Types)
+    See https://llvm.org/docs/LangRef.html#single-value-types for more informations
+    """
+    i16 = "i16"
+    """
+    16-bit integer
+    """     
+    i32 = "i32"
+    """
+    32-bit integer.
+    """
+    i64 = "i64"
+    """
+    64-bit integer.
+    """
+    half = "half"
+    """
+    16-bit floating-point value
+    """
+    bfloat = "bfloat"
+    """
+    16-bit “brain” floating-point value (7-bit significand).
+    """
+    float = "float"
+    """
+    32-bit floating-point value
+    """
+    double = "double"
+    """
+    64-bit floating-point value
+    """
+    fp128 = "fp128"
+    """
+    128-bit floating-point value (113-bit significand)
+    """
+    x86_fp80 = "x86_fp80"
+    """
+    80-bit floating-point value (X87)
+    """
+    ppc_fp128 = "ppc_fp128"
+    """
+    128-bit floating-point value (two 64-bits)
+    """
+
+class glob_const_type(Enum):
+    """LLVM global constant types"""
+    global_ = "global"
+    const_ = "const"
+
+class unnamed_local_type(Enum):
+    """
+    LLVM unnamed local types
+    """
+    unnamed_addr = "unnamed_addr"
+    local_unnamed_addr = "local_unnamed_addr"
+
+
+def opt(optional_variable: Enum) -> str:
+    """
+    This function helps to print optional values in LLVM-IR Instructions.
+    If the Value, which is passed to the function, is "None" it returns an empty string.
+    Otherwise it will return the value with a leading whitespace.
+
+    :param optional_variable: The variable withe the optional value
+    :type optional_variable: Enum
+    :return: Empty string if optional_variable = None, otherwise value of the optional_variable with leading whitsspace
+    :rtype: str
+    """
+    if optional_variable:
+        return " {}".format(optional_variable.value)
+    return ""
+
+
+# Global Variable
+class ir_global_variable:
+    """
+    Class for LLVM global Variables
+    None optional values have to be set in the init call!
+    For more Informations to global variables in LLVM-IR see:  #https://llvm.org/docs/LangRef.html#global-variables
+    """
+   
+    def __init__(self, global_var_name: str, glob_const: ir_glob_const_type, type: ir_dtype):
+        self.global_var_name: str = global_var_name
+        self.linkage:linkage_types = None
+        self.preemption_specifier: preemption_specifier_types = None
+        self.visability : visability_types = None
+        self.dll_storage_class: dll_storage_types = None
+        self.thread_local: str = None
+        self.unnamed_local = None
+        self.addr_space: int = None
+        self.externally_initialized: bool = None
+        self.glob_const: glob_const_type = glob_const
+        self.type: ir_dtype = type
+        self.inititalizer_constant: any = None
+        self.section: str = None
+        self.comdat: comdat_types = None
+        self.align: int = None
+    
+    def generate(self) -> str:
+        """
+        Returns the text representation of the global_variable instance
+
+        :return: Text Representation
+        :rtype: str
+        """
+        out = "@{} ={}{}{}{}{}{}".format(self.global_var_name, opt(self.linkage), opt(self.preemption_specifier), opt(self.visability), opt(self.dll_storage_class), opt(self.thread_local), opt(self.unnamed_local))
+        if self.addr_space:
+            out += " addrspace({})".format(self.addr_space)
+        out += "{}{}{}".format(opt(self.externally_initialized), opt(self.glob_const), opt(self.type))
+        if self.inititalizer_constant:
+            out += " {}".format(self.inititalizer_constant)
+        if self.section:
+            out += ", section \"{}\"".format(self.section)
+        if self.comdat:
+            out += ", comdat {}".format(self.comdat.value)
+        if self.align:
+            out += ", align {}".format(self.align)
+        return "{}\n".format(out)
+
+class ir_parameter:
+    def __init__(self, dtype: ir_dtype, param_attribs: list, Name: str = None):
+        self.dtype: ir_dtype = dtype
+        self.param_attribs: list[parameter_attribute_types] = param_attribs
+        self.name: str = None
+
+class ir_basic_block:
+    def generate(self):
+        raise NotImplementedError("you have to implement that function!")
+
+class ir_function:
+    def __init__(self):
+        self.linkage:linkage_types = None
+        self.preemption_specifier: preemption_specifier_types = None
+        self.visability : visability_types = None
+        self.dll_storage_class: dll_storage_types = None
+        self.cconv: calling_conventions_types = None
+        self.return_type: ir_parameter = None           #Name of parameter is gonna be ignored!
+        self.function_name: str = None
+        self.argument_list: list[ir_parameter] = []
+        self.unnamed_local: unnamed_local_type = None
+        self.addr_space: int = None
+        self.function_attribs: list[function_attribute_types] = []
+        self.section: str = None
+        self.comdat: comdat_types = None
+        self.align: int = None
+        self.gc: str = None
+        self.prefix: list[ir_parameter] = []
+        self.prologue: None = None #NOT SUPPOTED FOR NOW
+        self.personality: bool = None
+        self.meta_data: str = None
+        self.basic_blocks: list[ir_basic_block] = []
+
+        
 

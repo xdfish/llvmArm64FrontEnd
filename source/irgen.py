@@ -1,4 +1,9 @@
 from enum import Enum
+from source.irtypes import comdat_types
+from source.irtypes import preemption_specifier_types
+from source.irtypes import visability_types
+from source.irtypes import dll_storage_types
+
 
 class ir_file:
     def __init__(self, filename):
@@ -51,13 +56,9 @@ class ir_file:
         for f in self.functions:
             out += f.generate()
         return out
-
-# Global Variable
-class glob_variable:
-    def __init__(self, dtype, value, name):
-        if dtype == "str":
-            x=0
     
+
+
 # Input Parameter
 class inp_param:
     def __init__(self, dtype, size, name):
@@ -92,7 +93,6 @@ class inst_store:
     
     def generate(self):
         return "store {}{} {}, {}{}* {}, align {}\n".format(self.source_dtype, self.source_size, self.source_name, self.target_dtype, self.target_size, self.target_name, self.align)
-
 
 class inst_load:
     def __init__(self, target_name, load_dtype, load_size, source_name, source_dtype, source_size):

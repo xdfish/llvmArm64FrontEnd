@@ -349,5 +349,5 @@ def parse_asm(raw_asm: str) -> parsed_asm_list:
                     asm_fnc = asm_function()
                 curFunction = line[17:-1]
                 
-    print("PARSER (Overview) ---------------\n Architecture: \t\t{}\n Executeable Format:\t{} \n Instructions: \t\t{}\n Functions: \t\t{}\n Sucessfull:\t\t{}\n---------------------------------".format(architecture, execformat, instCount, len(asm_list.functions), parserStatus))
+    print("PARSER (Overview) ---------------\n\t|-> Architecture: \t{}\n\t|-> Executeable Format:\t{} \n\t|-> Instructions: \t{}\n\t|-> Functions: \t\t{}\n\t'-> Sucessfull:\t\t{}\n---------------------------------".format(architecture, execformat, instCount, len(asm_list.functions), parserStatus))
     return asm_list

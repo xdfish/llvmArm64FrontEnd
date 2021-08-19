@@ -1,4 +1,5 @@
 from enum import Enum
+from os import name
 
 #Languange Reference for LLVM-IR:
     # https://llvm.org/docs/LangRef.html
@@ -250,6 +251,8 @@ class unnamed_local_type(Enum):
     local_unnamed_addr = "local_unnamed_addr"
 
 
+
+
 def opt(optional_variable: Enum) -> str:
     """
     This function helps to print optional values in LLVM-IR Instructions.
@@ -274,7 +277,7 @@ class ir_global_variable:
     For more Informations to global variables in LLVM-IR see:  #https://llvm.org/docs/LangRef.html#global-variables
     """
    
-    def __init__(self, global_var_name: str, glob_const: ir_glob_const_type, type: ir_dtype):
+    def __init__(self, global_var_name: str, glob_const: glob_const_type, type: ir_dtype):
         self.global_var_name: str = global_var_name
         self.linkage:linkage_types = None
         self.preemption_specifier: preemption_specifier_types = None
@@ -313,24 +316,47 @@ class ir_global_variable:
         return "{}\n".format(out)
 
 class ir_parameter:
-    def __init__(self, dtype: ir_dtype, param_attribs: list, Name: str = None):
+    def __init__(self, dtype: ir_dtype = None, param_attribs: list = [], name: str = "", value: any = None):
         self.dtype: ir_dtype = dtype
         self.param_attribs: list[parameter_attribute_types] = param_attribs
-        self.name: str = None
+        self.name: str = name
+        self.value: any = value
+    
+    def generate_fnc_ret(self):
+        out = ""
+        for a in self.param_attribs:
+            out += "{} ".format(a.value)
+        return out + self.dtype.value
+        
 
+#Basic Blocks (Protocoll)
 class ir_basic_block:
     def generate(self):
         raise NotImplementedError("you have to implement that function!")
 
+class irbb_alloca(ir_basic_block):
+    # Num Elements is not supported for now!
+
+    def __init__(self, alloc_var: ir_parameter, align: int = None):
+        super().__init__()
+        self.alloc_var: ir_parameter = alloc_var
+        self.align = align
+
+    def generate(self):
+        out = "%{} = alloca {}".format(self.alloc_var.name, self.alloc_var.dtype.value)
+        if self.align:
+            out += ", align {}".format(self.align)
+        return out
+
 class ir_function:
-    def __init__(self):
+    def __init__(self, return_type: ir_parameter, function_name: str):
         self.linkage:linkage_types = None
         self.preemption_specifier: preemption_specifier_types = None
         self.visability : visability_types = None
         self.dll_storage_class: dll_storage_types = None
         self.cconv: calling_conventions_types = None
-        self.return_type: ir_parameter = None           #Name of parameter is gonna be ignored!
-        self.function_name: str = None
+        self.return_type: ir_parameter = return_type           #Name of parameter is gonna be ignored!
+        self.function_name: str = function_name
         self.argument_list: list[ir_parameter] = []
         self.unnamed_local: unnamed_local_type = None
         self.addr_space: int = None
@@ -339,11 +365,51 @@ class ir_function:
         self.comdat: comdat_types = None
         self.align: int = None
         self.gc: str = None
-        self.prefix: list[ir_parameter] = []
+        self.prefix: ir_parameter = None
         self.prologue: None = None #NOT SUPPOTED FOR NOW
         self.personality: bool = None
         self.meta_data: str = None
         self.basic_blocks: list[ir_basic_block] = []
+    
+    def add_basic_block(self, basic_block: ir_basic_block):
+        self.basic_blocks.append(basic_block)
 
-        
+    def generate(self):
+        out = "define {}{}{}{}{}{} @{} (".format(opt(self.linkage), opt(self.preemption_specifier), opt(self.visability), opt(self.dll_storage_class), opt(self.cconv), self.return_type.generate_fnc_ret(), self.function_name)
+        for i, a in enumerate(self.argument_list):
+            if i == 0:
+                out += "{} {}".format(a.dtype.value, a.name)
+            else:
+                out += ", {} {}".format(a.dtype.value, a.name)
+        out += "){}".format(opt(self.unnamed_local))
+        if self.addr_space:
+            out += " addrspace({})".format(self.addr_space)
+        for f in self.function_attribs:
+            out += " {}".format(f.value)
+        if self.section:
+            out += ", section \"{}\"".format(self.section)
+        if self.comdat:
+            out += ", comdat {}".format(self.comdat.value)
+        if self.align:
+            out += ", align {}".format(self.align)
+        if self.gc:
+            out += " {}".format(self.gc)
+        if self.prefix:
+            out += " prefix {} {}".format(self.prefix.dtype.value, self.prefix.value)
+        if self.personality:
+            out += " personality"
+        if self.meta_data:
+            out += " #{}".format(self.meta_data)
+        out += " {\n"
+        for bb in self.basic_blocks:
+            out += "\t{}\n".format(bb.generate())
+        return out + "}\n"
 
+
+
+
+x = ir_function(ir_parameter(ir_dtype.i32, []), "testFunction")
+x.add_basic_block(irbb_alloca(ir_parameter(ir_dtype.i64, [], "t0"), 4))
+x.add_basic_block(irbb_alloca(ir_parameter(ir_dtype.float, [], "t1"), 4))
+
+print(x.generate())

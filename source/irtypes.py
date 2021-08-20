@@ -315,18 +315,46 @@ class ir_global_variable:
             out += ", align {}".format(self.align)
         return "{}\n".format(out)
 
-class ir_parameter:
-    def __init__(self, dtype: ir_dtype = None, param_attribs: list = [], name: str = "", value: any = None):
-        self.dtype: ir_dtype = dtype
-        self.param_attribs: list[parameter_attribute_types] = param_attribs
+
+#IR_PARAMETER (Variables and fix values)
+class ir_param:
+    def str_rep(self) -> str:
+        raise NotImplementedError("you have to implement that function!")
+
+    def str_ty(self) -> str:
+        raise NotImplementedError("you have to implement that function!")    
+
+class ir_var(ir_param):
+    def __init__(self, ty: ir_dtype, name: str = "", param_attribs: list = []) -> None:
+        super().__init__()
+        self.ty: ir_dtype = ty
         self.name: str = name
-        self.value: any = value
-    
-    def generate_fnc_ret(self):
+        self.param_attribs: list[parameter_attribute_types] = param_attribs
+
+    def generate_fnc_ret(self) -> str:
         out = ""
         for a in self.param_attribs:
             out += "{} ".format(a.value)
-        return out + self.dtype.value
+        return out + self.ty.value
+
+    def str_rep(self) -> str:
+        return "%{}".format(self.name)
+    
+    def str_ty(self) -> str:
+        return self.ty.value
+
+class ir_val(ir_param):
+        def __init__(self, ty: ir_dtype, value: any) -> None:
+            super().__init__()
+            self.ty: ir_dtype = ty
+            self.value: any = value
+        
+        def str_rep(self) -> str:
+            return "{}".format(self.value)
+        
+        def str_ty(self) -> str:
+            return self.ty.value
+        
         
 
 #Basic Blocks (Protocoll)
@@ -335,29 +363,143 @@ class ir_basic_block:
         raise NotImplementedError("you have to implement that function!")
 
 class irbb_alloca(ir_basic_block):
+    """    
+    Allocation instruction - IR_Basic_Block
+    """
     # Num Elements is not supported for now!
 
-    def __init__(self, alloc_var: ir_parameter, align: int = None):
+    def __init__(self, alloc_var: ir_var, align: int = None):
         super().__init__()
-        self.alloc_var: ir_parameter = alloc_var
+        self.alloc_var: ir_var = alloc_var
         self.align = align
 
     def generate(self):
-        out = "%{} = alloca {}".format(self.alloc_var.name, self.alloc_var.dtype.value)
+        out = "{} = alloca {}".format(self.alloc_var.str_rep(), self.alloc_var.str_ty())
         if self.align:
             out += ", align {}".format(self.align)
         return out
 
+class irbb_store(ir_basic_block):
+    """    
+    Store instruction - IR_Basic_Block
+    """
+    def __init__(self, source_var: ir_param, target_var: ir_var, align: int = None): 
+        super().__init__()
+        self.source_var: ir_param = source_var
+        self.target_var: ir_var = target_var
+        self.align: int = align
+    
+    def generate(self):
+        out = "store {} {}, {}* {}".format(self.source_var.str_ty(), self.source_var.str_rep(), self.target_var.str_ty(), self.target_var.str_rep())
+        if self.align:
+            out += ", align {}".format(self.align)
+        return out
+
+class irbb_load(ir_basic_block):
+    """    
+    Load instruction - IR_Basic_Block
+    """
+    def __init__(self, target_var: ir_var, source_var: ir_var, align: int = None):
+        super().__init__()
+        self.target_var: ir_var = target_var
+        self.source_var: ir_var = source_var
+        self.align: int = align
+
+    def generate(self):
+        out = "{} = load {}, {}* {}".format(self.target_var.str_rep(), self.target_var.str_ty(), self.source_var.str_ty(), self.source_var.str_rep())
+        if self.align:
+            out += ", align {}".format(self.align)
+        return out
+
+class irbb_return(ir_basic_block):
+    """
+    Return instruction - IR_Basic_Block
+    structs are not supported for now!
+    """
+    def __init__(self, return_var: ir_param = None) -> None:
+        super().__init__()
+        self.return_var: ir_param = return_var
+
+    def generate(self):
+        out = "ret "
+        if self.return_var:
+            out += "{} {}".format(self.return_var.str_ty(), self.return_var.str_rep())
+        else:
+            out += "void"
+        return out
+
+class irbb_add(ir_basic_block):
+    def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, nsw: bool = False, nuw: bool = False) -> None:
+        super().__init__()
+        self.result_var: ir_var = result_var
+        self.op1_var: ir_param = op1_var
+        self.op2_var: ir_param = op2_var
+        self.nsw: bool = nsw
+        self.nuw: bool = nuw
+        if( not((result_var.str_ty() is op1_var.str_ty()) and (op1_var.str_ty() is op2_var.str_ty()))):
+            print("ATTENTION! The given data types doesnt match! (add instruction: var1: {}, var2: {}".format(op1_var.str_rep(), op2_var.str_rep()))
+    
+    def generate(self):
+        out = "{} = add ".format(self.result_var.str_rep())
+        if self.nuw:
+            out += "nuw "
+        if self.nsw:
+            out += "nsw "
+        out += "{} {}, {}".format(self.result_var.str_ty(), self.op1_var.str_rep(), self.op2_var.str_rep())
+        return out
+
+class irbb_sub(ir_basic_block):
+    def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, nsw: bool = False, nuw: bool = False) -> None:
+        super().__init__()
+        self.result_var: ir_var = result_var
+        self.op1_var: ir_param = op1_var
+        self.op2_var: ir_param = op2_var
+        self.nsw: bool = nsw
+        self.nuw: bool = nuw
+        if( not((result_var.str_ty() is op1_var.str_ty()) and (op1_var.str_ty() is op2_var.str_ty()))):
+            print("ATTENTION! The given data types doesnt match! (sub instruction: var1: {}, var2: {}".format(op1_var.str_rep(), op2_var.str_rep()))
+    
+    def generate(self):
+        out = "{} = sub ".format(self.result_var.str_rep())
+        if self.nuw:
+            out += "nuw "
+        if self.nsw:
+            out += "nsw "
+        out += "{} {}, {}".format(self.result_var.str_ty(), self.op1_var.str_rep(), self.op2_var.str_rep())
+        return out
+
+class irbb_mul(ir_basic_block):
+    def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, nsw: bool = False, nuw: bool = False) -> None:
+        super().__init__()
+        self.result_var: ir_var = result_var
+        self.op1_var: ir_param = op1_var
+        self.op2_var: ir_param = op2_var
+        self.nsw: bool = nsw
+        self.nuw: bool = nuw
+        if( not((result_var.str_ty() is op1_var.str_ty()) and (op1_var.str_ty() is op2_var.str_ty()))):
+            print("ATTENTION! The given data types doesnt match! (mul instruction: var1: {}, var2: {}".format(op1_var.str_rep(), op2_var.str_rep()))
+    
+    def generate(self):
+        out = "{} = mul ".format(self.result_var.str_rep())
+        if self.nuw:
+            out += "nuw "
+        if self.nsw:
+            out += "nsw "
+        out += "{} {}, {}".format(self.result_var.str_ty(), self.op1_var.str_rep(), self.op2_var.str_rep())
+        return out
+    
+
+
 class ir_function:
-    def __init__(self, return_type: ir_parameter, function_name: str):
+    def __init__(self, return_type: ir_var, function_name: str):
         self.linkage:linkage_types = None
         self.preemption_specifier: preemption_specifier_types = None
         self.visability : visability_types = None
         self.dll_storage_class: dll_storage_types = None
         self.cconv: calling_conventions_types = None
-        self.return_type: ir_parameter = return_type           #Name of parameter is gonna be ignored!
+        self.return_type: ir_var = return_type           #Name of parameter is gonna be ignored!
         self.function_name: str = function_name
-        self.argument_list: list[ir_parameter] = []
+        self.argument_list: list[ir_var] = []
         self.unnamed_local: unnamed_local_type = None
         self.addr_space: int = None
         self.function_attribs: list[function_attribute_types] = []
@@ -365,7 +507,7 @@ class ir_function:
         self.comdat: comdat_types = None
         self.align: int = None
         self.gc: str = None
-        self.prefix: ir_parameter = None
+        self.prefix: ir_val = None
         self.prologue: None = None #NOT SUPPOTED FOR NOW
         self.personality: bool = None
         self.meta_data: str = None
@@ -408,8 +550,10 @@ class ir_function:
 
 
 
-x = ir_function(ir_parameter(ir_dtype.i32, []), "testFunction")
-x.add_basic_block(irbb_alloca(ir_parameter(ir_dtype.i64, [], "t0"), 4))
-x.add_basic_block(irbb_alloca(ir_parameter(ir_dtype.float, [], "t1"), 4))
-
+x = ir_function(ir_var(ir_dtype.i32), "testFunction")
+x.add_basic_block(irbb_alloca(ir_var(ir_dtype.i64, "t0"), 4))
+x.add_basic_block(irbb_alloca(ir_var(ir_dtype.float, "t1"), 4))
+x.add_basic_block(irbb_store(ir_var(ir_dtype.i32, "ab"), ir_var(ir_dtype.i64, "cd"), 4))
+x.add_basic_block(irbb_load(ir_var(ir_dtype.i32, "cc"), ir_var(ir_dtype.i32, "bb"), 4))
+x.add_basic_block(irbb_return())
 print(x.generate())

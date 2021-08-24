@@ -1,5 +1,6 @@
 from enum import Enum
 from os import name
+import inspect
 
 #Languange Reference for LLVM-IR:
     # https://llvm.org/docs/LangRef.html
@@ -191,52 +192,97 @@ class comdat_types(Enum):
     nodeduplicate = "nodeduplicate"
     samesize = "samesize"
 
-
 class ir_dtype(Enum):
     """
     LLVM Data Types (Single Value Types)
     See https://llvm.org/docs/LangRef.html#single-value-types for more informations
     """
+    i1 = "i1"
+    i1_ptr = "i1*"
+    """
+    1-bit integer (mostly used for bool values)
+    """     
     i16 = "i16"
+    i16_ptr = "i16*"
     """
     16-bit integer
     """     
     i32 = "i32"
+    i32_ptr = "i32*"
     """
     32-bit integer.
     """
     i64 = "i64"
+    i64_ptr = "i64*"
     """
     64-bit integer.
     """
     half = "half"
+    half_ptr = "half*"
     """
     16-bit floating-point value
     """
     bfloat = "bfloat"
+    bfloat_ptr = "bfloat*"
     """
     16-bit “brain” floating-point value (7-bit significand).
     """
     float = "float"
+    float_ptr = "float*"
     """
     32-bit floating-point value
     """
     double = "double"
+    double_ptr = "double*"
     """
     64-bit floating-point value
     """
     fp128 = "fp128"
+    fp128_ptr = "fp128*"
     """
     128-bit floating-point value (113-bit significand)
     """
     x86_fp80 = "x86_fp80"
+    x86_fp80_ptr = "x86_fp80*"
     """
     80-bit floating-point value (X87)
     """
     ppc_fp128 = "ppc_fp128"
+    ppc_fp128_ptr = "ppc_fp128*"
     """
     128-bit floating-point value (two 64-bits)
     """
+
+irgroup_dtype_integer = [ir_dtype.i16, ir_dtype.i32, ir_dtype.i64]
+irgroup_dtype_float = [ir_dtype.half, ir_dtype.bfloat, ir_dtype.float, ir_dtype.double, ir_dtype.fp128, ir_dtype.x86_fp80, ir_dtype.ppc_fp128]
+    
+def dtype_check(params: list, allowed_types: list = None, function: str = "") -> bool:
+    """
+    Checks if all params are of the same dtype, and if they are allowed
+
+    :param params: List with parameter to check
+    :type params: list[ir_param]
+    :param allowed_types: List with allowed dtypes, defaults to []
+    :type allowed_types: list[ir_dtype], optional
+    :param function: Name of the function, which calls the check function, defaults to ""
+    :type function: str, optional
+    :return: True if all conditions match, False if not (see also text output)
+    :rtype: bool
+    """
+
+    calling_class = inspect.stack()[1][0].f_locals["self"].__class__.__name__
+
+    last: str  = None
+    for p in params:
+        if allowed_types and p.ty not in allowed_types:
+            print("ATTENTION! Datatype of variable not allowed for this instruction!\n\t'-> [{} instruction - {} is {}]\n".format(calling_class, p.str_rep(), p.str_ty()))
+            return False
+        if last and (p.str_ty() is not last):
+            print("ATTENTION! The given variable data types doesnt match!\n\t'-> [{} instruction - {} is not {}]\n".format(function, p.str_rep(), last))
+            return False
+        else:
+            last = p.str_ty()
+
 
 class glob_const_type(Enum):
     """LLVM global constant types"""
@@ -250,8 +296,55 @@ class unnamed_local_type(Enum):
     unnamed_addr = "unnamed_addr"
     local_unnamed_addr = "local_unnamed_addr"
 
+class fast_math_flags_type(Enum):
+    nnan = "nnan"
+    ninf = "ninf"
+    nsz = "nsz"
+    arcp = "arcp"
+    contract = "contract"
+    afn = "afn"
+    reassoc = "reassoc"
+    fast = "fast"
 
+class atomic_memory_ordering_constraints_type(Enum):
+    unordered = "unordered"
+    monotonic = "monotonic"
+    acquire = "acquire"
+    release = "release"
+    acq_rel = "acq_rel"
+    seq_cst = "seq_cst"
 
+class atomicrmw_op_type(Enum):
+    _xchg = "xchg"
+    _add = "add"
+    _sub = "sub"
+    _and = "and"
+    _nand = "nand"
+    _or = "or"
+    _xor = "xor"
+    _max = "max"
+    _min = "min"
+    _umax = "umax"
+    _umin = "umin"
+    _fadd = "fadd"
+    _fsub = "fsub"
+
+class compare_type(Enum):
+    _eq = "eq"          #equal
+    _ne = "ne"          #not equal
+    _ugt = "ugt"        #unsigned greater than
+    _uge = "uge"        #unsigned greater or equal
+    _ult = "ult"        #unsigned less than
+    _ule = "ule"        #unsigned less or equal
+    _sgt = "sgt"        #signed greater than
+    _sge = "sge"        #signed greater or equal
+    _slt = "slt"        #signed less than
+    _sle = "sle"        #signed less or equal
+
+class tail_type(Enum):
+    _tail = "tail"
+    _musttail = "musttail"
+    _notail = "notail"
 
 def opt(optional_variable: Enum) -> str:
     """
@@ -344,152 +437,41 @@ class ir_var(ir_param):
         return self.ty.value
 
 class ir_val(ir_param):
-        def __init__(self, ty: ir_dtype, value: any) -> None:
-            super().__init__()
-            self.ty: ir_dtype = ty
-            self.value: any = value
-        
-        def str_rep(self) -> str:
-            return "{}".format(self.value)
-        
-        def str_ty(self) -> str:
-            return self.ty.value
-        
-        
+    def __init__(self, ty: ir_dtype, value: any) -> None:
+        super().__init__()
+        self.ty: ir_dtype = ty
+        self.value: any = value
+    
+    def str_rep(self) -> str:
+        return "{}".format(self.value)
+    
+    def str_ty(self) -> str:
+        return self.ty.value
 
-#Basic Blocks (Protocoll)
+class ir_ptr_var(ir_param):
+    def __init__(self, ty: ir_dtype, size: int, ptr: str) -> None:
+        super().__init__()
+        self.ty: ir_dtype = ty
+        self.size: int = size
+        self.ptr: str = ""
+    
+
+
+#Basic_Blocks (Protocoll)
 class ir_basic_block:
-    def generate(self):
-        raise NotImplementedError("you have to implement that function!")
-
-class irbb_alloca(ir_basic_block):
-    """    
-    Allocation instruction - IR_Basic_Block
-    """
-    # Num Elements is not supported for now!
-
-    def __init__(self, alloc_var: ir_var, align: int = None):
-        super().__init__()
-        self.alloc_var: ir_var = alloc_var
-        self.align = align
-
-    def generate(self):
-        out = "{} = alloca {}".format(self.alloc_var.str_rep(), self.alloc_var.str_ty())
-        if self.align:
-            out += ", align {}".format(self.align)
-        return out
-
-class irbb_store(ir_basic_block):
-    """    
-    Store instruction - IR_Basic_Block
-    """
-    def __init__(self, source_var: ir_param, target_var: ir_var, align: int = None): 
-        super().__init__()
-        self.source_var: ir_param = source_var
-        self.target_var: ir_var = target_var
-        self.align: int = align
     
-    def generate(self):
-        out = "store {} {}, {}* {}".format(self.source_var.str_ty(), self.source_var.str_rep(), self.target_var.str_ty(), self.target_var.str_rep())
-        if self.align:
-            out += ", align {}".format(self.align)
-        return out
-
-class irbb_load(ir_basic_block):
-    """    
-    Load instruction - IR_Basic_Block
-    """
-    def __init__(self, target_var: ir_var, source_var: ir_var, align: int = None):
-        super().__init__()
-        self.target_var: ir_var = target_var
-        self.source_var: ir_var = source_var
-        self.align: int = align
+    def conditions(self) -> bool:
+        #comming soon
+        #raise NotImplementedError("you have to implement the conditions() function!")
+        pass
 
     def generate(self):
-        out = "{} = load {}, {}* {}".format(self.target_var.str_rep(), self.target_var.str_ty(), self.source_var.str_ty(), self.source_var.str_rep())
-        if self.align:
-            out += ", align {}".format(self.align)
-        return out
+        raise NotImplementedError("you have to implement the generate() function!")
 
-class irbb_return(ir_basic_block):
-    """
-    Return instruction - IR_Basic_Block
-    structs are not supported for now!
-    """
-    def __init__(self, return_var: ir_param = None) -> None:
-        super().__init__()
-        self.return_var: ir_param = return_var
+    def not_supported(self, bb):
+        print("ERROR - This instruction is not supported for now: {}".format(bb.__class__.__name__))
 
-    def generate(self):
-        out = "ret "
-        if self.return_var:
-            out += "{} {}".format(self.return_var.str_ty(), self.return_var.str_rep())
-        else:
-            out += "void"
-        return out
-
-class irbb_add(ir_basic_block):
-    def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, nsw: bool = False, nuw: bool = False) -> None:
-        super().__init__()
-        self.result_var: ir_var = result_var
-        self.op1_var: ir_param = op1_var
-        self.op2_var: ir_param = op2_var
-        self.nsw: bool = nsw
-        self.nuw: bool = nuw
-        if( not((result_var.str_ty() is op1_var.str_ty()) and (op1_var.str_ty() is op2_var.str_ty()))):
-            print("ATTENTION! The given data types doesnt match! (add instruction: var1: {}, var2: {}".format(op1_var.str_rep(), op2_var.str_rep()))
-    
-    def generate(self):
-        out = "{} = add ".format(self.result_var.str_rep())
-        if self.nuw:
-            out += "nuw "
-        if self.nsw:
-            out += "nsw "
-        out += "{} {}, {}".format(self.result_var.str_ty(), self.op1_var.str_rep(), self.op2_var.str_rep())
-        return out
-
-class irbb_sub(ir_basic_block):
-    def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, nsw: bool = False, nuw: bool = False) -> None:
-        super().__init__()
-        self.result_var: ir_var = result_var
-        self.op1_var: ir_param = op1_var
-        self.op2_var: ir_param = op2_var
-        self.nsw: bool = nsw
-        self.nuw: bool = nuw
-        if( not((result_var.str_ty() is op1_var.str_ty()) and (op1_var.str_ty() is op2_var.str_ty()))):
-            print("ATTENTION! The given data types doesnt match! (sub instruction: var1: {}, var2: {}".format(op1_var.str_rep(), op2_var.str_rep()))
-    
-    def generate(self):
-        out = "{} = sub ".format(self.result_var.str_rep())
-        if self.nuw:
-            out += "nuw "
-        if self.nsw:
-            out += "nsw "
-        out += "{} {}, {}".format(self.result_var.str_ty(), self.op1_var.str_rep(), self.op2_var.str_rep())
-        return out
-
-class irbb_mul(ir_basic_block):
-    def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, nsw: bool = False, nuw: bool = False) -> None:
-        super().__init__()
-        self.result_var: ir_var = result_var
-        self.op1_var: ir_param = op1_var
-        self.op2_var: ir_param = op2_var
-        self.nsw: bool = nsw
-        self.nuw: bool = nuw
-        if( not((result_var.str_ty() is op1_var.str_ty()) and (op1_var.str_ty() is op2_var.str_ty()))):
-            print("ATTENTION! The given data types doesnt match! (mul instruction: var1: {}, var2: {}".format(op1_var.str_rep(), op2_var.str_rep()))
-    
-    def generate(self):
-        out = "{} = mul ".format(self.result_var.str_rep())
-        if self.nuw:
-            out += "nuw "
-        if self.nsw:
-            out += "nsw "
-        out += "{} {}, {}".format(self.result_var.str_ty(), self.op1_var.str_rep(), self.op2_var.str_rep())
-        return out
-    
-
-
+#IR_FUNCTION
 class ir_function:
     def __init__(self, return_type: ir_var, function_name: str):
         self.linkage:linkage_types = None
@@ -547,6 +529,797 @@ class ir_function:
             out += "\t{}\n".format(bb.generate())
         return out + "}\n"
 
+#Basic Blocks (Instructions)
+# -> Terminator Instructions
+class irbb_return(ir_basic_block):
+    """
+    Return instruction - IR_Basic_Block
+    structs are not supported for now!
+    """
+    def __init__(self, return_var: ir_param = None) -> None:
+        super().__init__()
+        self.return_var: ir_param = return_var
+
+    def generate(self):
+        out = "ret "
+        if self.return_var:
+            out += "{} {}".format(self.return_var.str_ty(), self.return_var.str_rep())
+        else:
+            out += "void"
+        return out
+
+class irbb_br(ir_basic_block):
+    def __init__(self) -> None:
+        super().__init__()
+        super().not_supported(self)
+
+class irbb_switch(ir_basic_block):
+    def __init__(self) -> None:
+        super().__init__()
+        super().not_supported(self)
+
+class irbb_indirectbr(ir_basic_block):
+    def __init__(self) -> None:
+        super().__init__()
+        super().not_supported(self)
+
+class irbb_invoke(ir_basic_block):
+    def __init__(self) -> None:
+        super().__init__()
+        super().not_supported(self)
+
+class irbb_callbr(ir_basic_block):
+    def __init__(self) -> None:
+        super().__init__()
+        super().not_supported(self)
+
+class irbb_resume(ir_basic_block):
+    def __init__(self) -> None:
+        super().__init__()
+        super().not_supported(self)
+
+class irbb_catchswitch(ir_basic_block):
+    def __init__(self) -> None:
+        super().__init__()
+        super().not_supported(self)
+
+class irbb_catchret(ir_basic_block):
+    def __init__(self) -> None:
+        super().__init__()
+        super().not_supported(self)
+
+class irbb_cleanupret(ir_basic_block):
+    def __init__(self) -> None:
+        super().__init__()
+        super().not_supported(self)
+
+class irbb_unreachable(ir_basic_block):
+    def __init__(self) -> None:
+        super().__init__()
+        super().not_supported(self)
+
+
+# -> Unary Operations
+class irbb_fneg(ir_basic_block):
+    def __init__(self, result_var: ir_var, op1_var: ir_param, fast_math_flags: list = []) -> None:
+        super().__init__()
+        self.result_var: ir_var = result_var
+        self.op1_var: ir_param = op1_var
+        self.fast_math_flags: list[fast_math_flags_type] = fast_math_flags
+        dtype_check([result_var, op1_var], irgroup_dtype_float)
+
+    def generate(self):
+        out = "{} = fneg".format(self.result_var.str_rep())
+        for f in self.fast_math_flags:
+            out += " {}".format(f.value)
+        out += " {} {}".format(self.result_var.str_ty(), self.op1_var.str_rep(), self.op2_var.str_rep())
+        return out
+
+
+# -> Binary Operations
+class irbb_add(ir_basic_block):
+    def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, nsw: bool = False, nuw: bool = False) -> None:
+        super().__init__()
+        self.result_var: ir_var = result_var
+        self.op1_var: ir_param = op1_var
+        self.op2_var: ir_param = op2_var
+        self.nsw: bool = nsw
+        self.nuw: bool = nuw
+        dtype_check([result_var, op1_var, op2_var], irgroup_dtype_integer,)
+    
+    def generate(self):
+        out = "{} = add ".format(self.result_var.str_rep())
+        if self.nuw:
+            out += "nuw "
+        if self.nsw:
+            out += "nsw "
+        out += "{} {}, {}".format(self.result_var.str_ty(), self.op1_var.str_rep(), self.op2_var.str_rep())
+        return out
+
+class irbb_fadd(ir_basic_block):
+    def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, fast_math_flags: list = []) -> None:
+        super().__init__()
+        self.result_var: ir_var = result_var
+        self.op1_var: ir_param = op1_var
+        self.op2_var: ir_param = op2_var
+        self.fast_math_flags: list[fast_math_flags_type] = fast_math_flags
+        dtype_check([result_var, op1_var, op2_var], irgroup_dtype_float)
+
+    def generate(self):
+        out = "{} = fadd".format(self.result_var.str_rep())
+        for f in self.fast_math_flags:
+            out += " {}".format(f.value)
+        out += " {} {}, {}".format(self.result_var.str_ty(), self.op1_var.str_rep(), self.op2_var.str_rep())
+        return out
+
+class irbb_sub(ir_basic_block):
+    def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, nsw: bool = False, nuw: bool = False) -> None:
+        super().__init__()
+        self.result_var: ir_var = result_var
+        self.op1_var: ir_param = op1_var
+        self.op2_var: ir_param = op2_var
+        self.nsw: bool = nsw
+        self.nuw: bool = nuw
+        dtype_check([result_var, op1_var, op2_var], irgroup_dtype_integer)
+    
+    def generate(self):
+        out = "{} = sub ".format(self.result_var.str_rep())
+        if self.nuw:
+            out += "nuw "
+        if self.nsw:
+            out += "nsw "
+        out += "{} {}, {}".format(self.result_var.str_ty(), self.op1_var.str_rep(), self.op2_var.str_rep())
+        return out
+
+class irbb_fsub(ir_basic_block):
+    def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, fast_math_flags: list = []) -> None:
+        super().__init__()
+        self.result_var: ir_var = result_var
+        self.op1_var: ir_param = op1_var
+        self.op2_var: ir_param = op2_var
+        self.fast_math_flags: list[fast_math_flags_type] = fast_math_flags
+        dtype_check([result_var, op1_var, op2_var], irgroup_dtype_float)
+
+    def generate(self):
+        out = "{} = fsub".format(self.result_var.str_rep())
+        for f in self.fast_math_flags:
+            out += " {}".format(f.value)
+        out += " {} {}, {}".format(self.result_var.str_ty(), self.op1_var.str_rep(), self.op2_var.str_rep())
+        return out
+
+class irbb_mul(ir_basic_block):
+    def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, nsw: bool = False, nuw: bool = False) -> None:
+        super().__init__()
+        self.result_var: ir_var = result_var
+        self.op1_var: ir_param = op1_var
+        self.op2_var: ir_param = op2_var
+        self.nsw: bool = nsw
+        self.nuw: bool = nuw
+        dtype_check([result_var, op1_var, op2_var], irgroup_dtype_integer)
+    
+    def generate(self):
+        out = "{} = mul ".format(self.result_var.str_rep())
+        if self.nuw:
+            out += "nuw "
+        if self.nsw:
+            out += "nsw "
+        out += "{} {}, {}".format(self.result_var.str_ty(), self.op1_var.str_rep(), self.op2_var.str_rep())
+        return out
+
+class irbb_fmul(ir_basic_block):
+    def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, fast_math_flags: list = []) -> None:
+        super().__init__()
+        self.result_var: ir_var = result_var
+        self.op1_var: ir_param = op1_var
+        self.op2_var: ir_param = op2_var
+        self.fast_math_flags: list[fast_math_flags_type] = fast_math_flags
+        dtype_check([result_var, op1_var, op2_var], irgroup_dtype_float)
+
+    def generate(self):
+        out = "{} = fmul".format(self.result_var.str_rep())
+        for f in self.fast_math_flags:
+            out += " {}".format(f.value)
+        out += " {} {}, {}".format(self.result_var.str_ty(), self.op1_var.str_rep(), self.op2_var.str_rep())
+        return out
+
+class irbb_udiv(ir_basic_block):
+    def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, exact: bool = False) -> None:
+        super().__init__()
+        self.result_var: ir_var = result_var
+        self.op1_var: ir_param = op1_var
+        self.op2_var: ir_param = op2_var
+        self.exact: bool = exact
+        dtype_check([result_var, op1_var, op2_var], irgroup_dtype_integer)
+
+    def generate(self):
+        out = "{} = udiv ".format(self.result_var.str_rep())
+        if self.exact:
+            out += "exact "
+        out += "{} {}, {}".format(self.result_var.str_ty(), self.op1_var.str_rep(), self.op2_var.str_rep())
+        return out
+
+class irbb_sdiv(ir_basic_block):
+    def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, exact: bool = False) -> None:
+        super().__init__()
+        self.result_var: ir_var = result_var
+        self.op1_var: ir_param = op1_var
+        self.op2_var: ir_param = op2_var
+        self.exact: bool = exact
+        dtype_check([result_var, op1_var, op2_var], irgroup_dtype_integer)
+
+    def generate(self):
+        out = "{} = sdiv ".format(self.result_var.str_rep())
+        if self.exact:
+            out += "exact "
+        out += "{} {}, {}".format(self.result_var.str_ty(), self.op1_var.str_rep(), self.op2_var.str_rep())
+        return out
+
+class irbb_fdiv(ir_basic_block):
+    def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, fast_math_flags: list = []) -> None:
+        super().__init__()
+        self.result_var: ir_var = result_var
+        self.op1_var: ir_param = op1_var
+        self.op2_var: ir_param = op2_var
+        self.fast_math_flags: list[fast_math_flags_type] = fast_math_flags
+        dtype_check([result_var, op1_var, op2_var], irgroup_dtype_float)
+
+    def generate(self):
+        out = "{} = fdiv".format(self.result_var.str_rep())
+        for f in self.fast_math_flags:
+            out += " {}".format(f.value)
+        out += " {} {}, {}".format(self.result_var.str_ty(), self.op1_var.str_rep(), self.op2_var.str_rep())
+        return out
+
+class irbb_urem(ir_basic_block):
+    def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, exact: bool = False) -> None:
+        super().__init__()
+        self.result_var: ir_var = result_var
+        self.op1_var: ir_param = op1_var
+        self.op2_var: ir_param = op2_var
+        self.exact: bool = exact
+        dtype_check([result_var, op1_var, op2_var], irgroup_dtype_integer)
+
+    def generate(self):
+        return "{} = urem {} {}, {}".format(self.result_var.str_rep(), self.result_var.str_ty(), self.op1_var.str_rep(), self.op2_var.str_rep())
+
+class irbb_srem(ir_basic_block):
+    def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, exact: bool = False) -> None:
+        super().__init__()
+        self.result_var: ir_var = result_var
+        self.op1_var: ir_param = op1_var
+        self.op2_var: ir_param = op2_var
+        self.exact: bool = exact
+        dtype_check([result_var, op1_var, op2_var], irgroup_dtype_integer)
+
+    def generate(self):
+        return "{} = srem {} {}, {}".format(self.result_var.str_rep(), self.result_var.str_ty(), self.op1_var.str_rep(), self.op2_var.str_rep())
+
+class irbb_frem(ir_basic_block):
+    def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, fast_math_flags: list = []) -> None:
+        super().__init__()
+        self.result_var: ir_var = result_var
+        self.op1_var: ir_param = op1_var
+        self.op2_var: ir_param = op2_var
+        self.fast_math_flags: list[fast_math_flags_type] = fast_math_flags
+        dtype_check([result_var, op1_var, op2_var], irgroup_dtype_float)
+
+    def generate(self):
+        out = "{} = frem".format(self.result_var.str_rep())
+        for f in self.fast_math_flags:
+            out += " {}".format(f.value)
+        out += " {} {}, {}".format(self.result_var.str_ty(), self.op1_var.str_rep(), self.op2_var.str_rep())
+        return out
+
+
+# -> Bitwise Binary Operations
+class irbb_shl(ir_basic_block):
+    def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, nsw: bool = False, nuw: bool = False) -> None:
+        super().__init__()
+        self.result_var: ir_var = result_var
+        self.op1_var: ir_param = op1_var
+        self.op2_var: ir_param = op2_var
+        self.nsw: bool = nsw
+        self.nuw: bool = nuw
+        dtype_check([result_var, op1_var, op2_var], irgroup_dtype_integer)
+    
+    def generate(self):
+        out = "{} = shl ".format(self.result_var.str_rep())
+        if self.nuw:
+            out += "nuw "
+        if self.nsw:
+            out += "nsw "
+        out += "{} {}, {}".format(self.result_var.str_ty(), self.op1_var.str_rep(), self.op2_var.str_rep())
+        return out
+
+class irbb_lshr(ir_basic_block):
+    def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, exact: bool = False) -> None:
+        super().__init__()
+        self.result_var: ir_var = result_var
+        self.op1_var: ir_param = op1_var
+        self.op2_var: ir_param = op2_var
+        self.exact: bool = exact
+        dtype_check([result_var, op1_var, op2_var], irgroup_dtype_integer)
+
+    def generate(self):
+        out = "{} = lshr ".format(self.result_var.str_rep())
+        if self.exact:
+            out += "exact "
+        out += "{} {}, {}".format(self.result_var.str_ty(), self.op1_var.str_rep(), self.op2_var.str_rep())
+        return out
+
+class irbb_ashr(ir_basic_block):
+    def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, exact: bool = False) -> None:
+        super().__init__()
+        self.result_var: ir_var = result_var
+        self.op1_var: ir_param = op1_var
+        self.op2_var: ir_param = op2_var
+        self.exact: bool = exact
+        dtype_check([result_var, op1_var, op2_var], irgroup_dtype_integer)
+
+    def generate(self):
+        out = "{} = ashr ".format(self.result_var.str_rep())
+        if self.exact:
+            out += "exact "
+        out += "{} {}, {}".format(self.result_var.str_ty(), self.op1_var.str_rep(), self.op2_var.str_rep())
+        return out
+
+class irbb_and(ir_basic_block):
+    def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, exact: bool = False) -> None:
+        super().__init__()
+        self.result_var: ir_var = result_var
+        self.op1_var: ir_param = op1_var
+        self.op2_var: ir_param = op2_var
+        self.exact: bool = exact
+        dtype_check([result_var, op1_var, op2_var], irgroup_dtype_integer)
+
+    def generate(self):
+        return "{} = and {} {}, {}".format(self.result_var.str_rep(), self.result_var.str_ty(), self.op1_var.str_rep(), self.op2_var.str_rep())
+
+class irbb_or(ir_basic_block):
+    def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, exact: bool = False) -> None:
+        super().__init__()
+        self.result_var: ir_var = result_var
+        self.op1_var: ir_param = op1_var
+        self.op2_var: ir_param = op2_var
+        self.exact: bool = exact
+        dtype_check([result_var, op1_var, op2_var], irgroup_dtype_integer)
+
+    def generate(self):
+        return "{} = or {} {}, {}".format(self.result_var.str_rep(), self.result_var.str_ty(), self.op1_var.str_rep(), self.op2_var.str_rep())
+
+class irbb_xor(ir_basic_block):
+    def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, exact: bool = False) -> None:
+        super().__init__()
+        self.result_var: ir_var = result_var
+        self.op1_var: ir_param = op1_var
+        self.op2_var: ir_param = op2_var
+        self.exact: bool = exact
+        dtype_check([result_var, op1_var, op2_var], irgroup_dtype_integer)
+
+    def generate(self):
+        return "{} = xor {} {}, {}".format(self.result_var.str_rep(), self.result_var.str_ty(), self.op1_var.str_rep(), self.op2_var.str_rep())
+
+
+# -> Vector Operations
+class irbb_insertelement(ir_basic_block):
+    def __init__(self) -> None:
+        super().__init__()
+        super().not_supported(self)
+
+class irbb_shufflevector(ir_basic_block):
+    def __init__(self) -> None:
+        super().__init__()
+        super().not_supported(self)
+
+
+# -> Aggregate Operations
+class irbb_extractvalue(ir_basic_block):
+    def __init__(self) -> None:
+        super().__init__()
+        super().not_supported(self)
+
+class irbb_insertvalue(ir_basic_block):
+    def __init__(self) -> None:
+        super().__init__()
+        super().not_supported(self)
+
+
+# -> Memory Access and Addressing Operations
+class irbb_alloca(ir_basic_block):
+    """    
+    Allocation instruction - IR_Basic_Block
+    """
+    # Num Elements is not supported for now!
+
+    def __init__(self, alloc_var: ir_var, align: int = None):
+        super().__init__()
+        self.alloc_var: ir_var = alloc_var
+        self.align = align
+
+    def generate(self):
+        out = "{} = alloca {}".format(self.alloc_var.str_rep(), self.alloc_var.str_ty())
+        if self.align:
+            out += ", align {}".format(self.align)
+        return out
+
+class irbb_load(ir_basic_block):
+    """    
+    Load instruction - IR_Basic_Block
+    """
+    def __init__(self, target_var: ir_var, source_var: ir_var, align: int = None):
+        super().__init__()
+        self.target_var: ir_var = target_var
+        self.source_var: ir_var = source_var
+        self.align: int = align
+
+    def generate(self):
+        out = "{} = load {}, {}* {}".format(self.target_var.str_rep(), self.target_var.str_ty(), self.source_var.str_ty(), self.source_var.str_rep())
+        if self.align:
+            out += ", align {}".format(self.align)
+        return out
+
+class irbb_store(ir_basic_block):
+    """    
+    Store instruction - IR_Basic_Block
+    """
+    def __init__(self, source_var: ir_param, target_var: ir_var, align: int = None): 
+        super().__init__()
+        self.source_var: ir_param = source_var
+        self.target_var: ir_var = target_var
+        self.align: int = align
+    
+    def generate(self):
+        out = "store {} {}, {}* {}".format(self.source_var.str_ty(), self.source_var.str_rep(), self.target_var.str_ty(), self.target_var.str_rep())
+        if self.align:
+            out += ", align {}".format(self.align)
+        return out
+
+class irbb_fence(ir_basic_block):
+    def __init__(self, ordering: atomic_memory_ordering_constraints_type, syncscope: str = None) -> None:
+        super().__init__()
+        self.ordering: atomic_memory_ordering_constraints_type = ordering
+        self.syncscope: str = syncscope
+
+    def generate(self):
+        out = "fence"
+        if self.syncscope:
+            out += " syncscope(\"{}\")".format(self.syncscope)
+        return out + " {}".format(self.ordering)
+
+class irbb_cmpxchg(ir_basic_block):
+    def __init__(self) -> None:
+        super().__init__()
+        super().not_supported(self)
+
+class irbb_atomicrmw(ir_basic_block):
+    def __init__(self, operation: atomicrmw_op_type, pointer: ir_var, value: ir_val, ordering: atomic_memory_ordering_constraints_type, volatile: bool = False, syncscope: str = None, align: int = None) -> None:
+        super().__init__()
+        self.operation: atomicrmw_op_type = operation
+        self.pointer: ir_var = pointer
+        self.value: ir_val = value
+        self.ordering: atomic_memory_ordering_constraints_type = ordering
+        self.volatile: bool = volatile
+        self.syncscope: str = syncscope
+        self.align: int = align
+    
+    def generate(self):
+        out = "atomicrmw"
+        if self.volatile:
+            out += " volatile"
+        out += " {} {}* {}, {}".format(self.operation.value, self.pointer.str_ty(), self.pointer.str_rep(), self.value.str_ty(), self.value.str_rep())
+        if self.syncscope:
+            out += " syncscope(\"{}\")".format(self.syncscope)
+        out += " {}".format(self.ordering.value)
+        return out + ", align {}".format(self.align)
+
+class irbb_getelementptr(ir_basic_block):
+    def __init__(self) -> None:
+        super().__init__()
+        super().not_supported(self)
+
+
+# -> Conversion Operations
+class irbb_trunc_to(ir_basic_block):
+    def __init__(self, result_var: ir_var, value: ir_val, to_dtype: ir_dtype) -> None:
+        super().__init__()
+        self.result_var: ir_var = result_var
+        self.value: ir_val = value
+        self.to_dtype: ir_dtype = to_dtype
+
+        calling_class = self.__class__.__name__
+        if (value.ty not in irgroup_dtype_integer) or (to_dtype not in irgroup_dtype_integer):
+            print("ATTENTION! This instruction can only convert between integer Datatypes!\n\t'-> [{} instruction - From:{} To:{}]\n".format(calling_class, result_var.str_ty(), to_dtype.value))
+        if self.result_var.str_ty() is not to_dtype.value:
+            print("ATTENTION! Datatype of result and conversion var does not match!\n\t'-> [{} instruction - Result:{} Conversion:{}]\n".format(calling_class, result_var.str_ty(), to_dtype.value))
+    
+    def generate(self):
+        return "{} = trunc {} {} to {}".format(self.result_var.str_rep(), self.result_var.str_ty(), self.value.str_rep(), self.to_dtype.value)
+
+class irbb_zext_to(ir_basic_block):
+    def __init__(self, result_var: ir_var, value: ir_val, to_dtype: ir_dtype) -> None:
+        super().__init__()
+        self.result_var: ir_var = result_var
+        self.value: ir_val = value
+        self.to_dtype: ir_dtype = to_dtype
+
+        calling_class = self.__class__.__name__
+        if (value.ty not in irgroup_dtype_integer) or (to_dtype not in irgroup_dtype_integer):
+            print("ATTENTION! This instruction can only convert between integer Datatypes!\n\t'-> [{} instruction - From:{} To:{}]\n".format(calling_class, result_var.str_ty(), to_dtype.value))
+        if self.result_var.str_ty() is not to_dtype.value:
+            print("ATTENTION! Datatype of result and conversion var does not match!\n\t'-> [{} instruction - Result:{} Conversion:{}]\n".format(calling_class, result_var.str_ty(), to_dtype.value))
+    
+    def generate(self):
+        return "{} = zext {} {} to {}".format(self.result_var.str_rep(), self.result_var.str_ty(), self.value.str_rep(), self.to_dtype.value)
+
+class irbb_sext_to(ir_basic_block):
+    def __init__(self, result_var: ir_var, value: ir_val, to_dtype: ir_dtype) -> None:
+        super().__init__()
+        self.result_var: ir_var = result_var
+        self.value: ir_val = value
+        self.to_dtype: ir_dtype = to_dtype
+
+        calling_class = self.__class__.__name__
+        if (value.ty not in irgroup_dtype_integer) or (to_dtype not in irgroup_dtype_integer):
+            print("ATTENTION! This instruction can only convert between integer Datatypes!\n\t'-> [{} instruction - From:{} To:{}]\n".format(calling_class, result_var.str_ty(), to_dtype.value))
+        if self.result_var.str_ty() is not to_dtype.value:
+            print("ATTENTION! Datatype of result and conversion var does not match!\n\t'-> [{} instruction - Result:{} Conversion:{}]\n".format(calling_class, result_var.str_ty(), to_dtype.value))
+    
+    def generate(self):
+        return "{} = sext {} {} to {}".format(self.result_var.str_rep(), self.result_var.str_ty(), self.value.str_rep(), self.to_dtype.value)
+
+class irbb_fptrunc_to(ir_basic_block):
+    def __init__(self, result_var: ir_var, value: ir_val, to_dtype: ir_dtype) -> None:
+        super().__init__()
+        self.result_var: ir_var = result_var
+        self.value: ir_val = value
+        self.to_dtype: ir_dtype = to_dtype
+
+        calling_class = self.__class__.__name__
+        if (value.ty not in irgroup_dtype_float) or (to_dtype not in irgroup_dtype_float):
+            print("ATTENTION! This instruction can only convert between integer Datatypes!\n\t'-> [{} instruction - From:{} To:{}]\n".format(calling_class, result_var.str_ty(), to_dtype.value))
+        if self.result_var.str_ty() is not to_dtype.value:
+            print("ATTENTION! Datatype of result and conversion var does not match!\n\t'-> [{} instruction - Result:{} Conversion:{}]\n".format(calling_class, result_var.str_ty(), to_dtype.value))
+    
+    def generate(self):
+        return "{} = fptrunc {} {} to {}".format(self.result_var.str_rep(), self.result_var.str_ty(), self.value.str_rep(), self.to_dtype.value)
+
+class irbb_fpext_to(ir_basic_block):
+    def __init__(self, result_var: ir_var, value: ir_val, to_dtype: ir_dtype) -> None:
+        super().__init__()
+        self.result_var: ir_var = result_var
+        self.value: ir_val = value
+        self.to_dtype: ir_dtype = to_dtype
+
+        calling_class = self.__class__.__name__
+        if (value.ty not in irgroup_dtype_float) or (to_dtype not in irgroup_dtype_float):
+            print("ATTENTION! This instruction can only convert between integer Datatypes!\n\t'-> [{} instruction - From:{} To:{}]\n".format(calling_class, result_var.str_ty(), to_dtype.value))
+        if self.result_var.str_ty() is not to_dtype.value:
+            print("ATTENTION! Datatype of result and conversion var does not match!\n\t'-> [{} instruction - Result:{} Conversion:{}]\n".format(calling_class, result_var.str_ty(), to_dtype.value))
+    
+    def generate(self):
+        return "{} = fpext {} {} to {}".format(self.result_var.str_rep(), self.result_var.str_ty(), self.value.str_rep(), self.to_dtype.value)
+
+class irbb_fptoui_to(ir_basic_block):
+    def __init__(self, result_var: ir_var, value: ir_val, to_dtype: ir_dtype) -> None:
+        super().__init__()
+        self.result_var: ir_var = result_var
+        self.value: ir_val = value
+        self.to_dtype: ir_dtype = to_dtype
+
+        calling_class = self.__class__.__name__
+        if (value.ty not in irgroup_dtype_float) or (to_dtype not in irgroup_dtype_integer):
+            print("ATTENTION! This instruction can only convert between integer Datatypes!\n\t'-> [{} instruction - From:{} To:{}]\n".format(calling_class, result_var.str_ty(), to_dtype.value))
+        if self.result_var.str_ty() is not to_dtype.value:
+            print("ATTENTION! Datatype of result and conversion var does not match!\n\t'-> [{} instruction - Result:{} Conversion:{}]\n".format(calling_class, result_var.str_ty(), to_dtype.value))
+    
+    def generate(self):
+        return "{} = fptoui {} {} to {}".format(self.result_var.str_rep(), self.result_var.str_ty(), self.value.str_rep(), self.to_dtype.value)
+
+class irbb_fptosi_to(ir_basic_block):
+    def __init__(self, result_var: ir_var, value: ir_val, to_dtype: ir_dtype) -> None:
+        super().__init__()
+        self.result_var: ir_var = result_var
+        self.value: ir_val = value
+        self.to_dtype: ir_dtype = to_dtype
+
+        calling_class = self.__class__.__name__
+        if (value.ty not in irgroup_dtype_float) or (to_dtype not in irgroup_dtype_integer):
+            print("ATTENTION! This instruction can only convert between integer Datatypes!\n\t'-> [{} instruction - From:{} To:{}]\n".format(calling_class, result_var.str_ty(), to_dtype.value))
+        if self.result_var.str_ty() is not to_dtype.value:
+            print("ATTENTION! Datatype of result and conversion var does not match!\n\t'-> [{} instruction - Result:{} Conversion:{}]\n".format(calling_class, result_var.str_ty(), to_dtype.value))
+    
+    def generate(self):
+        return "{} = fptosi {} {} to {}".format(self.result_var.str_rep(), self.result_var.str_ty(), self.value.str_rep(), self.to_dtype.value)
+
+class irbb_uitofp_to(ir_basic_block):
+    def __init__(self, result_var: ir_var, value: ir_val, to_dtype: ir_dtype) -> None:
+        super().__init__()
+        self.result_var: ir_var = result_var
+        self.value: ir_val = value
+        self.to_dtype: ir_dtype = to_dtype
+
+        calling_class = self.__class__.__name__
+        if (value.ty not in irgroup_dtype_integer) or (to_dtype not in irgroup_dtype_float):
+            print("ATTENTION! This instruction can only convert between integer Datatypes!\n\t'-> [{} instruction - From:{} To:{}]\n".format(calling_class, result_var.str_ty(), to_dtype.value))
+        if self.result_var.str_ty() is not to_dtype.value:
+            print("ATTENTION! Datatype of result and conversion var does not match!\n\t'-> [{} instruction - Result:{} Conversion:{}]\n".format(calling_class, result_var.str_ty(), to_dtype.value))
+    
+    def generate(self):
+        return "{} = uitofp {} {} to {}".format(self.result_var.str_rep(), self.result_var.str_ty(), self.value.str_rep(), self.to_dtype.value)
+
+class irbb_sitofp_to(ir_basic_block):
+    def __init__(self, result_var: ir_var, value: ir_val, to_dtype: ir_dtype) -> None:
+        super().__init__()
+        self.result_var: ir_var = result_var
+        self.value: ir_val = value
+        self.to_dtype: ir_dtype = to_dtype
+
+        calling_class = self.__class__.__name__
+        if (value.ty not in irgroup_dtype_integer) or (to_dtype not in irgroup_dtype_float):
+            print("ATTENTION! This instruction can only convert between integer Datatypes!\n\t'-> [{} instruction - From:{} To:{}]\n".format(calling_class, result_var.str_ty(), to_dtype.value))
+        if self.result_var.str_ty() is not to_dtype.value:
+            print("ATTENTION! Datatype of result and conversion var does not match!\n\t'-> [{} instruction - Result:{} Conversion:{}]\n".format(calling_class, result_var.str_ty(), to_dtype.value))
+    
+    def generate(self):
+        return "{} = sitofp {} {} to {}".format(self.result_var.str_rep(), self.result_var.str_ty(), self.value.str_rep(), self.to_dtype.value)
+
+class irbb_ptrtoint_to(ir_basic_block):
+    def __init__(self) -> None:
+        super().__init__()
+        super().not_supported(self)
+
+class irbb_inttoptr_to(ir_basic_block):
+    def __init__(self) -> None:
+        super().__init__()
+        super().not_supported(self)
+
+class irbb_bitcast_to(ir_basic_block):
+    def __init__(self) -> None:
+        super().__init__()
+        super().not_supported(self)
+
+class irbb_addrspacecast_to(ir_basic_block):
+    def __init__(self) -> None:
+        super().__init__()
+        super().not_supported(self)
+
+
+# -> Other Operations
+class irbb_icmp(ir_basic_block):
+    def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, condition: compare_type) -> None:
+        super().__init__()
+        self.result_var: ir_var = result_var
+        self.op1_var: ir_param = op1_var
+        self.op2_var: ir_param = op2_var
+        self.condition: compare_type = condition
+
+    def generate(self):
+        out = "{} = icmp {} {} {}, {}".format(self.result_var.str_rep(), self.condition.value, self.op1_var.str_ty(), self.op1_var.str_rep(), self.op2_var.str_rep())
+        return out
+
+class irbb_fcmp(ir_basic_block):
+    def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, condition: compare_type, fast_math_flags: list = []) -> None:
+        super().__init__()
+        self.result_var: ir_var = result_var
+        self.op1_var: ir_param = op1_var
+        self.op2_var: ir_param = op2_var
+        self.condition: compare_type = condition
+        self.fast_math_flags: list[fast_math_flags_type] = fast_math_flags
+
+    def generate(self):
+        out = "{} = icmp".format(self.result_var.str_rep())
+        for f in self.fast_math_flags:
+            out += " {}".format(f.value)
+        return out + " {} {} {}, {}".format(self.condition.value, self.op1_var.str_ty(), self.op1_var.str_rep(), self.op2_var.str_rep())
+
+class irbb_phi(ir_basic_block):
+    def __init__(self) -> None:
+        super().__init__()
+        super().not_supported(self)
+
+class irbb_select(ir_basic_block):
+    def __init__(self, result_var: ir_var, val1_var: ir_param, val2_var: ir_param, condition: compare_type, fast_math_flags: list = []) -> None:
+        super().__init__()
+        self.result_var: ir_var = result_var
+        self.val1: ir_param = val1_var
+        self.val2: ir_param = val2_var
+        self.condition = condition
+        self.fast_math_flags: list[fast_math_flags_type] = fast_math_flags
+
+    def generate(self) -> str:
+        out = "{} = select".format(self.result_var.str_rep())
+        for f in self.fast_math_flags:
+            out += " {}".format(f.value)
+        out += " selty {}, {} {}, {} {}".format(self.condition.value, self.val1.str_ty(), self.val1.str_rep(), self.val2.str_ty(), self.val2.str_rep())
+        return out
+
+class irbb_freeze(ir_basic_block):
+    def __init__(self, result_var: ir_var, value: ir_var) -> None:
+        super().__init__()
+        self.result_var: ir_var = result_var
+        self.value: ir_var = value
+    
+    def generate(self) -> str:
+        return "{} = freeze {} {}".format(self.result_var.str_rep(), self.value.str_ty(), self.value.str_rep())
+
+class irbb_call(ir_basic_block):
+    def __init__(self, result_var: ir_var, fn_ptr: str, fn_args: list, tail: tail_type = None, fast_math_flags: list = [], cconv: calling_conventions_types = None, ret_attrs: list = [], addrspace: int = None, fn_attrs: list = [], operand_bundle: list = []) -> None:
+        super().__init__()
+        self.result_var: ir_var = result_var
+        self.fn_ptr: str = fn_ptr
+        self.fn_args:list[ir_var] = fn_args                                  #TODO!!!
+        self.tail: tail_type = tail
+        self.fast_math_flags: list[fast_math_flags_type] = fast_math_flags
+        self.cconv: calling_conventions_types = cconv
+        self.ret_attrs: list[parameter_attribute_types] = ret_attrs
+        self.addrspace: int = addrspace
+        self.fn_attrs: list[function_attribute_types] = fn_attrs
+        self.operand_bundle = operand_bundle                    #NOT SUPPORTED FOR NOW!
+        if len(self.operand_bundle) is not 0:
+            print("ATTENTION -> Operation Bundles in function calls are not supported for now!")
+        
+    def generate(self):
+        out = "{} =".format(self.result_var.str_rep())
+        if self.tail:
+            out += " {}".format(self.tail.value)
+        out += " call"
+        for f in self.fast_math_flags:
+            out += " {}".format(f.value)
+        if self.cconv:
+            out += " {}".format(self.cconv.value)
+        for r in self.ret_attrs:
+            out += " {}".format(r.value)
+        if self.addrspace:
+            out += " addrspace({})".format(self.addrspace)
+        out += " {} @{}(".format(self.result_var.str_ty(), self.fn_ptr)
+        for i, fa in enumerate(self.fn_args):
+            tmp = "{} {}".format(fa.str_ty(), fa.str_rep())
+            if i is not 0:
+                tmp = ", " + tmp
+            out += tmp
+        out += ")"
+        for fa in self.fn_attrs:
+            out += " {}".format(fa.value)
+        return out
+        #operand bundle NOT supported
+
+class irbb_va_arg(ir_basic_block):
+    def __init__(self) -> None:
+        super().__init__()
+        super().not_supported(self)
+
+class irbb_landingpad(ir_basic_block):
+    def __init__(self) -> None:
+        super().__init__()
+        super().not_supported()
+
+class irbb_catchpad(ir_basic_block):
+    def __init__(self) -> None:
+        super().__init__()
+        super().not_supported(self)
+
+class irbb_cleanuppad(ir_basic_block):
+    def __init__(self) -> None:
+        super().__init__()
+        super().not_supported(self)
+
+
+# -> Intrinsic Functions
+# Variable Argument Handling Intrinsics
+class irbb_llvm_va_start(ir_basic_block):
+    def __init__(self) -> None:
+        super().__init__()
+        super().not_supported(self)
+
+class irbb_llvm_va_end(ir_basic_block):
+    def __init__(self) -> None:
+        super().__init__()
+        super().not_supported(self)
+
+class irbb_llvm_va_copy(ir_basic_block):
+    def __init__(self) -> None:
+        super().__init__()
+        super().not_supported(self)
 
 
 
@@ -555,5 +1328,11 @@ x.add_basic_block(irbb_alloca(ir_var(ir_dtype.i64, "t0"), 4))
 x.add_basic_block(irbb_alloca(ir_var(ir_dtype.float, "t1"), 4))
 x.add_basic_block(irbb_store(ir_var(ir_dtype.i32, "ab"), ir_var(ir_dtype.i64, "cd"), 4))
 x.add_basic_block(irbb_load(ir_var(ir_dtype.i32, "cc"), ir_var(ir_dtype.i32, "bb"), 4))
+x.add_basic_block(irbb_add(ir_var(ir_dtype.i32, "o"), ir_var(ir_dtype.i32, "l"), ir_var(ir_dtype.i32, "p"), True))
+x.add_basic_block(irbb_fadd(ir_var(ir_dtype.float, "j"), ir_var(ir_dtype.float, "n"), ir_val(ir_dtype.float, "4.0"), [fast_math_flags_type.nnan, fast_math_flags_type.afn]))
+x.add_basic_block(irbb_atomicrmw(atomicrmw_op_type._add, ir_var(ir_dtype.i32, "k"), ir_val(ir_dtype.i32, "5"), atomic_memory_ordering_constraints_type.acquire, True, "test", 3))
 x.add_basic_block(irbb_return())
+x.add_basic_block(irbb_call(ir_var(ir_dtype.i32, "2"), "add4", [ir_var(ir_dtype.i16, "a"), ir_var(ir_dtype.float, "b")], tail_type._musttail, [], calling_conventions_types.cc_10, [], 4, [], []))
 print(x.generate())
+
+y = irbb_insertelement()

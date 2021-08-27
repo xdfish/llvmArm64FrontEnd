@@ -117,9 +117,9 @@ class function_attribute_types(Enum):
     builtin = "builtin"
     cold = "cold"
     convergent = "convergent"
-    frame_pointer_none = "\"none\""
-    frame_pointer_non_leaf = "\"non-leaf\""
-    frame_pointer_all = "\"all\""
+    frame_pointer_none = "\"frame-pointer\"=\"none\""
+    frame_pointer_non_leaf = "\"frame-pointer\"=\"non-leaf\""
+    frame_pointer_all = "\"frame-pointer\"=\"all\""
     hot = "hot"
     inaccessiblememonly = "inaccessiblememonly"
     inaccessiblemem_or_argmemonly = "inaccessiblemem_or_argmemonly"
@@ -127,7 +127,8 @@ class function_attribute_types(Enum):
     jumptable = "jumptable"
     minsize = "minsize"
     naked = "naked"
-    no_inline_line_tables = "\"no-inline-line-tables\""
+    no_inline_line_tables_true = "\"no-inline-line-tables\"=\"true\""
+    no_inline_line_tables_false = "\"no-inline-line-tables\"=\"false\""
     no_jump_tables = "no-jump-tables"
     nobuiltin = "nobuiltin"
     noduplicate = "noduplicate"
@@ -198,64 +199,95 @@ class ir_dtype(Enum):
     See https://llvm.org/docs/LangRef.html#single-value-types for more informations
     """
     i1 = "i1"
-    i1_ptr = "i1*"
     """
     1-bit integer (mostly used for bool values)
     """     
+    i1_ptr = "i1*"
+    """
+    Pointer 1-bit integer (mostly used for bool values)
+    """     
     i16 = "i16"
-    i16_ptr = "i16*"
     """
     16-bit integer
+    """   
+    i16_ptr = "i16*"
+    """
+    Pointer 16-bit integer
     """     
     i32 = "i32"
-    i32_ptr = "i32*"
     """
     32-bit integer.
     """
+    i32_ptr = "i32*"
+    """
+    Pointer 32-bit integer.
+    """
     i64 = "i64"
-    i64_ptr = "i64*"
     """
     64-bit integer.
     """
+    i64_ptr = "i64*"
+    """
+    Pointer 64-bit integer.
+    """
     half = "half"
-    half_ptr = "half*"
     """
     16-bit floating-point value
     """
+    half_ptr = "half*"
+    """
+    Pointer 16-bit floating-point value
+    """
     bfloat = "bfloat"
-    bfloat_ptr = "bfloat*"
     """
     16-bit “brain” floating-point value (7-bit significand).
     """
+    bfloat_ptr = "bfloat*"
+    """
+    Pointer 16-bit “brain” floating-point value (7-bit significand).
+    """
     float = "float"
-    float_ptr = "float*"
     """
     32-bit floating-point value
     """
+    float_ptr = "float*"
+    """
+    Pointer 32-bit floating-point value
+    """
     double = "double"
-    double_ptr = "double*"
     """
     64-bit floating-point value
     """
+    double_ptr = "double*"
+    """
+    Pointer 64-bit floating-point value
+    """
     fp128 = "fp128"
-    fp128_ptr = "fp128*"
     """
     128-bit floating-point value (113-bit significand)
     """
+    fp128_ptr = "fp128*"
+    """
+    Pointer 128-bit floating-point value (113-bit significand)
+    """
     x86_fp80 = "x86_fp80"
-    x86_fp80_ptr = "x86_fp80*"
     """
     80-bit floating-point value (X87)
     """
+    x86_fp80_ptr = "x86_fp80*"
+    """
+    Pointer 80-bit floating-point value (X87)
+    """
     ppc_fp128 = "ppc_fp128"
-    ppc_fp128_ptr = "ppc_fp128*"
     """
     128-bit floating-point value (two 64-bits)
     """
-
+    ppc_fp128_ptr = "ppc_fp128*"
+    """
+    Pointer 128-bit floating-point value (two 64-bits)
+    """
 irgroup_dtype_integer = [ir_dtype.i16, ir_dtype.i32, ir_dtype.i64]
-irgroup_dtype_float = [ir_dtype.half, ir_dtype.bfloat, ir_dtype.float, ir_dtype.double, ir_dtype.fp128, ir_dtype.x86_fp80, ir_dtype.ppc_fp128]
-    
+irgroup_dtype_float = [ir_dtype.half, ir_dtype.bfloat, ir_dtype.float, ir_dtype.double, ir_dtype.fp128, ir_dtype.x86_fp80, ir_dtype.ppc_fp128]   
 def dtype_check(params: list, allowed_types: list = None, function: str = "") -> bool:
     """
     Checks if all params are of the same dtype, and if they are allowed
@@ -283,7 +315,6 @@ def dtype_check(params: list, allowed_types: list = None, function: str = "") ->
         else:
             last = p.str_ty()
 
-
 class glob_const_type(Enum):
     """LLVM global constant types"""
     global_ = "global"
@@ -295,6 +326,11 @@ class unnamed_local_type(Enum):
     """
     unnamed_addr = "unnamed_addr"
     local_unnamed_addr = "local_unnamed_addr"
+
+class thread_local_type(Enum):
+    localdynamic = "localdynamic"
+    initialexec = "initialexec"
+    localexec = "localexec"
 
 class fast_math_flags_type(Enum):
     nnan = "nnan"
@@ -346,6 +382,44 @@ class tail_type(Enum):
     _musttail = "musttail"
     _notail = "notail"
 
+class target_datalayout_mangling_type(Enum):
+    e = "e"
+    """ELF mangling"""
+    m = "m"
+    """Mips mangling"""
+    o = "o"
+    """Mach-O mangling"""
+    x = "x"
+    """Windows x86 COFF mangling"""
+    w = "w"
+    """Windows COFF mangling"""
+    a = "a"
+    """XCOFF mangling"""
+
+class target_tripple_architecture_type(Enum):
+    x86_64 = "x86_64"
+    arm64 = "arm64"
+
+class target_tripple_vendor_type(Enum):
+    apple = "apple"
+
+class target_tripple_operating_system_type(Enum):
+    macosx10_15_7 = "macosx10.15.7"
+    macosx11_0_0 = "macosx11.0.0"
+
+class module_flag_type(Enum):
+    """
+    https://llvm.org/docs/LangRef.html#module-flags-metadata
+    """
+    error = "1"
+    warning = "2"
+    require = "3"
+    override = "4"
+    append = "5"
+    append_unique = "6"
+    max = "7"
+
+# Help-Function - only for optional Enums
 def opt(optional_variable: Enum) -> str:
     """
     This function helps to print optional values in LLVM-IR Instructions.
@@ -360,53 +434,6 @@ def opt(optional_variable: Enum) -> str:
     if optional_variable:
         return " {}".format(optional_variable.value)
     return ""
-
-
-# Global Variable
-class ir_global_variable:
-    """
-    Class for LLVM global Variables
-    None optional values have to be set in the init call!
-    For more Informations to global variables in LLVM-IR see:  #https://llvm.org/docs/LangRef.html#global-variables
-    """
-   
-    def __init__(self, global_var_name: str, glob_const: glob_const_type, type: ir_dtype):
-        self.global_var_name: str = global_var_name
-        self.linkage:linkage_types = None
-        self.preemption_specifier: preemption_specifier_types = None
-        self.visability : visability_types = None
-        self.dll_storage_class: dll_storage_types = None
-        self.thread_local: str = None
-        self.unnamed_local = None
-        self.addr_space: int = None
-        self.externally_initialized: bool = None
-        self.glob_const: glob_const_type = glob_const
-        self.type: ir_dtype = type
-        self.inititalizer_constant: any = None
-        self.section: str = None
-        self.comdat: comdat_types = None
-        self.align: int = None
-    
-    def generate(self) -> str:
-        """
-        Returns the text representation of the global_variable instance
-
-        :return: Text Representation
-        :rtype: str
-        """
-        out = "@{} ={}{}{}{}{}{}".format(self.global_var_name, opt(self.linkage), opt(self.preemption_specifier), opt(self.visability), opt(self.dll_storage_class), opt(self.thread_local), opt(self.unnamed_local))
-        if self.addr_space:
-            out += " addrspace({})".format(self.addr_space)
-        out += "{}{}{}".format(opt(self.externally_initialized), opt(self.glob_const), opt(self.type))
-        if self.inititalizer_constant:
-            out += " {}".format(self.inititalizer_constant)
-        if self.section:
-            out += ", section \"{}\"".format(self.section)
-        if self.comdat:
-            out += ", comdat {}".format(self.comdat.value)
-        if self.align:
-            out += ", align {}".format(self.align)
-        return "{}\n".format(out)
 
 
 #IR_PARAMETER (Variables and fix values)
@@ -424,12 +451,6 @@ class ir_var(ir_param):
         self.name: str = name
         self.param_attribs: list[parameter_attribute_types] = param_attribs
 
-    def generate_fnc_ret(self) -> str:
-        out = ""
-        for a in self.param_attribs:
-            out += "{} ".format(a.value)
-        return out + self.ty.value
-
     def str_rep(self) -> str:
         return "%{}".format(self.name)
     
@@ -445,6 +466,21 @@ class ir_val(ir_param):
     def str_rep(self) -> str:
         return "{}".format(self.value)
     
+    def str_ty(self) -> str:
+        return self.ty.value
+
+class ir_fnc_var(ir_param):
+    def __init__(self, ty: ir_dtype, param_attribs: list = []) -> None:
+        super().__init__()
+        self.ty: ir_dtype = ty
+        self.param_attribs: list[parameter_attribute_types] = param_attribs
+
+    def str_rep(self) -> str:
+        out = ""
+        for a in self.param_attribs:
+            out += "{} ".format(a.value)
+        return out + self.ty.value
+
     def str_ty(self) -> str:
         return self.ty.value
 
@@ -471,35 +507,192 @@ class ir_basic_block:
     def not_supported(self, bb):
         print("ERROR - This instruction is not supported for now: {}".format(bb.__class__.__name__))
 
-#IR_FUNCTION
-class ir_function:
-    def __init__(self, return_type: ir_var, function_name: str):
-        self.linkage:linkage_types = None
-        self.preemption_specifier: preemption_specifier_types = None
-        self.visability : visability_types = None
-        self.dll_storage_class: dll_storage_types = None
-        self.cconv: calling_conventions_types = None
-        self.return_type: ir_var = return_type           #Name of parameter is gonna be ignored!
+
+# Declarations
+class irbb_global_declare_variable:
+    """
+    Class for LLVM global Variables
+    None optional values have to be set in the init call!
+    For more Informations to global variables in LLVM-IR see:  #https://llvm.org/docs/LangRef.html#global-variables
+    """
+    
+    def __init__(self, global_var: ir_var, glob_const: glob_const_type, linkage: linkage_types = None, preemption_specifier: preemption_specifier_types = None, visability : visability_types = None, dll_storage_class: dll_storage_types = None, thread_local: thread_local_type = None, unnamed_local: unnamed_local_type = None, addr_space: int = None, externally_initialized: bool = False, inititalizer_constant: any = None, section: str = None, comdat: comdat_types = None, align: int = None):
+        self.global_var: ir_var = global_var
+        self.linkage:linkage_types = linkage
+        self.preemption_specifier: preemption_specifier_types = preemption_specifier
+        self.visability : visability_types = visability
+        self.dll_storage_class: dll_storage_types = dll_storage_class
+        self.thread_local: thread_local_type = thread_local
+        self.unnamed_local: unnamed_local_type = unnamed_local
+        self.addr_space: int = addr_space
+        self.externally_initialized: bool = externally_initialized
+        self.glob_const: glob_const_type = glob_const
+        self.inititalizer_constant: any = inititalizer_constant
+        self.section: str = section
+        self.comdat: comdat_types = comdat
+        self.align: int = align
+    
+    def generate(self) -> str:
+        """
+        Returns the text representation of the global_variable instance
+
+        :return: Text Representation
+        :rtype: str
+        """
+        out = "@{} ={}{}{}{}{}{}".format(self.global_var.str_rep(), opt(self.linkage), opt(self.preemption_specifier), opt(self.visability), opt(self.dll_storage_class), opt(self.thread_local), opt(self.unnamed_local))
+        if self.addr_space:
+            out += " addrspace({})".format(self.addr_space)
+        out += "{}{}{}".format(opt(self.externally_initialized), opt(self.glob_const), opt(self.global_var.str_ty()))
+        if self.inititalizer_constant:
+            out += " {}".format(self.inititalizer_constant)
+        if self.section:
+            out += ", section \"{}\"".format(self.section)
+        if self.comdat:
+            out += ", comdat {}".format(self.comdat.value)
+        if self.align:
+            out += ", align {}".format(self.align)
+        return "{}\n".format(out)
+
+class irbb_global_declare_function:
+    def __init__(self, return_var: ir_fnc_var, function_name: str, linkage:linkage_types = None, visability : visability_types = None, dll_storage_class: dll_storage_types = None, cconv: calling_conventions_types = None, argument_list: list = [], unnamed_local: unnamed_local_type = None, addr_space: int = None, align: int = None, gc: str = None, prefix: ir_val = None, prologue: None = None):
+        self.linkage:linkage_types = linkage
+        self.visability : visability_types = visability
+        self.dll_storage_class: dll_storage_types = dll_storage_class
+        self.cconv: calling_conventions_types = cconv
+        self.return_var: ir_fnc_var = return_var           #Name of parameter is gonna be ignored!
         self.function_name: str = function_name
-        self.argument_list: list[ir_var] = []
-        self.unnamed_local: unnamed_local_type = None
-        self.addr_space: int = None
-        self.function_attribs: list[function_attribute_types] = []
-        self.section: str = None
-        self.comdat: comdat_types = None
-        self.align: int = None
-        self.gc: str = None
-        self.prefix: ir_val = None
-        self.prologue: None = None #NOT SUPPOTED FOR NOW
-        self.personality: bool = None
-        self.meta_data: str = None
+        self.argument_list: list[ir_fnc_var] = argument_list
+        self.unnamed_local: unnamed_local_type = unnamed_local
+        self.addr_space: int = addr_space
+        self.align: int = align
+        self.gc: str = gc
+        self.prefix: ir_val = prefix
+        self.prologue: None = prologue #NOT SUPPOTED FOR NOW
+
+    def generate(self):
+        out = "declare {}{}{}{}{} @{}(".format(opt(self.linkage), opt(self.visability), opt(self.dll_storage_class), opt(self.cconv), self.return_var.str_rep(), self.function_name)
+        for i, a in enumerate(self.argument_list):
+            tmp = "{} {}".format(a.str_ty(), a.str_rep())
+            if i != 0:
+                tmp = ", " + tmp
+            out += tmp
+        out += "){}".format(opt(self.unnamed_local))
+        if self.addr_space:
+            out += " addrspace({})".format(self.addr_space)
+        if self.align:
+            out += ", align {}".format(self.align)
+        if self.gc:
+            out += " {}".format(self.gc)
+        if self.prefix:
+            out += " prefix {} {}".format(self.prefix.dtype.value, self.prefix.value)
+        return out
+
+class ir_global_attribs:
+    def add_attribute(self):
+        raise NotImplementedError("you have to implement the generate() function!")
+
+    def add_attributes(self):
+        raise NotImplementedError("you have to implement the generate() function!")
+    
+    def rename(self):
+        raise NotImplementedError("you have to implement the generate() function!")
+
+    def generate(self):
+        raise NotImplementedError("you have to implement the generate() function!")
+
+class ir_global_attribs_function(ir_global_attribs):
+    def __init__(self, name: str, attribs: list) -> None:
+        self.name: str = name
+        self.attribs: list[function_attribute_types] = attribs
+
+    def add_attribute(self, attribute: function_attribute_types):
+        self.add_attributes([attribute])
+    
+    def add_attributes(self, attributes: list):
+        self.attribs = list(set(self.attribs + attributes))
+
+    def rename(self, name: str):
+        self.name: str = name
+
+    def generate(self):
+        out = "attributes #{} = {".format(self.name)
+        for a in self.attribs:
+            out += " {}".format(a.value)
+        return out + " }"
+
+class ir_global_attribs_parameter(ir_global_attribs):
+    def __init__(self, name: str, attribs: list) -> None:
+        self.name: str = name
+        self.attribs: list[parameter_attribute_types] = attribs
+
+    def add_attribute(self, attribute: parameter_attribute_types):
+        self.add_attributes([attribute])
+    
+    def add_attributes(self, attributes: list):
+        self.attribs = list(set(self.attribs + attributes))
+    
+    def rename(self, name: str):
+        self.name: str = name
+
+    def generate(self):
+        out = "attributes #{} = {".format(self.name)
+        for a in self.attribs:
+            out += " {}".format(a.value)
+        return out + " }"
+
+class ir_global_metadata_module_flags:
+    #!<name> = !{ i32 <type>, !"<id>", <value_ty, value_val> }
+    def __init__(self, name: str, type: module_flag_type, id: str, value: ir_val) -> None:
+        self.name: str = name
+        self.type: module_flag_type = type
+        self.id: str = id
+        self.value: ir_val = value
+
+    def generate(self):
+        out = "!{} = !{".format(self.name)
+        out += "i32 {}, !\"{}\", {} {}}".format(self.type.value, self.id, self.value.str_ty(), self.value.str_rep())
+        return out
+
+class ir_global_metadata:
+    #!<name> = !{!"<id>"}
+    def __init__(self, name: str, id: str) -> None:
+        self.name: str = name
+        self.id: str = id
+
+    def generate(self):
+        out = "!{} = !{".format(self.name)
+        out += "!\"{}\"}".format(self.type.value, self.id, self.value.str_ty(), self.value.str_rep())
+        return out
+    
+#IR_FUNCTION
+class ir_function: 
+    def __init__(self, return_var: ir_fnc_var, function_name: str, linkage:linkage_types = None, preemption_specifier: preemption_specifier_types = None, visability : visability_types = None, dll_storage_class: dll_storage_types = None, cconv: calling_conventions_types = None, argument_list: list = [], unnamed_local: unnamed_local_type = None, addr_space: int = None, function_attribs: list = [], section: str = None, comdat: comdat_types = None, align: int = None, gc: str = None, prefix: ir_val = None, prologue: None = None, personality: bool = None, meta_data: str = None):
+        self.linkage:linkage_types = linkage
+        self.preemption_specifier: preemption_specifier_types = preemption_specifier
+        self.visability : visability_types = visability
+        self.dll_storage_class: dll_storage_types = dll_storage_class
+        self.cconv: calling_conventions_types = cconv
+        self.return_var: ir_fnc_var = return_var           #Name of parameter is gonna be ignored!
+        self.function_name: str = function_name
+        self.argument_list: list[ir_var] = argument_list
+        self.unnamed_local: unnamed_local_type = unnamed_local
+        self.addr_space: int = addr_space
+        self.function_attribs: list[function_attribute_types] = function_attribs
+        self.section: str = section
+        self.comdat: comdat_types = comdat
+        self.align: int = align
+        self.gc: str = gc
+        self.prefix: ir_val = prefix
+        self.prologue: None = prologue #NOT SUPPOTED FOR NOW
+        self.personality: bool = personality
+        self.meta_data: str = meta_data
         self.basic_blocks: list[ir_basic_block] = []
     
     def add_basic_block(self, basic_block: ir_basic_block):
         self.basic_blocks.append(basic_block)
 
     def generate(self):
-        out = "define {}{}{}{}{}{} @{} (".format(opt(self.linkage), opt(self.preemption_specifier), opt(self.visability), opt(self.dll_storage_class), opt(self.cconv), self.return_type.generate_fnc_ret(), self.function_name)
+        out = "define {}{}{}{}{}{} @{}(".format(opt(self.linkage), opt(self.preemption_specifier), opt(self.visability), opt(self.dll_storage_class), opt(self.cconv), self.return_var.str_rep(), self.function_name)
         for i, a in enumerate(self.argument_list):
             if i == 0:
                 out += "{} {}".format(a.dtype.value, a.name)
@@ -528,6 +721,180 @@ class ir_function:
         for bb in self.basic_blocks:
             out += "\t{}\n".format(bb.generate())
         return out + "}\n"
+
+#IR_FILE
+
+#NOT SUPPORTED
+class ir_file_target_triple:
+    def __init__(self, architecture: target_tripple_architecture_type, vendor: target_tripple_vendor_type, operating_system: target_tripple_operating_system_type) -> None:
+        self.architecture: target_tripple_architecture_type = architecture
+        self.vendor: target_tripple_vendor_type = vendor
+        self.operating_system: target_tripple_operating_system_type = operating_system
+
+    def generate(self):
+        return "target triple = \"{}-{}-{}\"".format(self.architecture.value, self.vendor.value, self.operating_system.value)
+
+#NOT SUPPORTED
+class ir_file_target_datalayout:
+    class addr_space:
+        def __init__(self, values: list) -> None:
+            self.values = values
+
+        def generate(self):
+            out = ""
+            for i, s in enumerate(self.sizes):
+                tmp = "{}"
+                if i != 0:
+                    tmp = ":" + tmp
+                out += tmp
+            return out
+
+    class int_align:
+        def __init__(self, size: int, abi: int, pref: int = None) -> None:
+            self.size: int = size
+            self.abi: int = abi
+            self.pref: int = pref
+
+        def generate(self):
+            out = "i{}:{}".format(self.size, self.abi)
+            if self.pref:
+                out += ":{}".format(self.pref)
+            return out
+
+    class vector_align:
+        def __init__(self, size: int, abi: int, pref: int = None) -> None:
+            self.size: int = size
+            self.abi: int = abi
+            self.pref: int = pref
+        
+        def generate(self):
+            out = "v{}:{}".format(self.size, self.abi)
+            if self.pref:
+                out += ":{}".format(self.pref)
+            return out
+
+    class float_align:
+        def __init__(self, size: int, abi: int, pref: int = None) -> None:
+            self.size: int = size
+            self.abi: int = abi
+            self.pref: int = pref
+        
+        def generate(self):
+            out = "f{}:{}".format(self.size, self.abi)
+            if self.pref:
+                out += ":{}".format(self.pref)
+            return out
+
+    class obj_align:
+        def __init__(self, abi: int, pref: int = None) -> None:
+            self.abi: int = abi
+            self.pref: int = pref
+        
+        def generate(self):
+            out = "a:{}".format(self.abi)
+            if self.pref:
+                out += ":{}".format(self.pref)
+            return out
+
+    class fnc_align:
+        def __init__(self, type: str, abi: int) -> None:
+            self.type = type
+            self.abi: int = abi
+        
+        def generate(self):
+            out = "F{}{}".format(self.type, self.abi)
+            return out
+
+    class native_i_width:
+        def __init__(self, sizes: list) -> None:
+            self.sizes: list[int] = sizes
+        
+        def generate(self):
+            out = "n"
+            for i, s in enumerate(self.sizes):
+                tmp = "{}"
+                if i != 0:
+                    tmp = ":" + tmp
+                out += tmp
+            return out
+
+    def __init__(self, little_endian: bool = None, stack_align: int = None, mangling: target_datalayout_mangling_type = None, i1: int = None, i8: int = None, i16: int = None, i32: int = None, i64: int = None, i128: int = None) -> None:
+        self.little_endian: bool = little_endian
+        self.mangling: target_datalayout_mangling_type = mangling
+        self.stack_align: int = stack_align
+
+    def generate(self):
+        tmp_arr = []
+        if self.little_endian:
+            if self.little_endian is False:
+                tmp_arr.append("E")
+            else:
+                tmp_arr.append("e")
+        if self.mangling:
+            tmp_arr.append("m:{}".format(self.mangling.value))
+        if self.i1:
+            tmp_arr.append("i1:{}".format(self.i1))
+        if self.i8:
+            tmp_arr.append("i8:{}".format(self.i8))
+        if self.i16:
+            tmp_arr.append("i16:{}".format(self.i16))        
+        if self.i32:
+            tmp_arr.append("i32:{}".format(self.i32))
+        if self.i64:
+            tmp_arr.append("i64:{}".format(self.i64))
+        if self.i128:
+            tmp_arr.append("i128:{}".format(self.i128))
+
+class ir_file:
+    def __init__(self, source_filename: str = None) -> None:
+        self.source_filename: str = source_filename
+        
+        #Target_Datalayout
+        self.td_set: bool = False
+        
+
+        #Target_Tripple
+        #<ARCHITECTURE> - <VENDOR> - <OPERATING_SYSTEM>
+        self.tt_set: bool = False
+
+
+        # CONTENT --------
+        #->Declarations
+        self.glob_var_declarations: list[irbb_global_declare_variable] = []
+        self.glob_fnc_declarations: list[irbb_global_declare_function] = []
+
+        #->Functions
+        self.glob_fnc: list[ir_function] = []
+
+        #->Attributes
+        self.glob_attribs_fnc: list[ir_global_attribs_function] = []
+        self.glob_attribs_param: list[ir_global_attribs_parameter] = []
+
+        self.glob_metadata_module_flags: list[ir_global_metadata_module_flags] = []
+        self.glob_metadata_ident: list[ir_global_metadata] = []
+
+
+    def set_target_datalayout(self, little_endian: bool, mangling: target_datalayout_mangling_type, stack_align: int, i1: int = None, i8: int = None, i16: int = None, i32: int = None, i64: int = None, i128: int = None, native_int_width: list = []):
+        self.td_set: bool = True
+        self.little_endian: bool = little_endian
+        self.mangling: target_datalayout_mangling_type = mangling
+        self.stack_align: int = stack_align
+        self.i1: int = i1
+        self.i8: int = i8
+        self.i16: int = i16
+        self.i32: int = i32
+        self.i64: int = i64
+        self.i128: int = i128
+
+    def set_target_tripple(self, architecture: target_tripple_architecture_type, vendor: target_tripple_vendor_type, operating_system: target_tripple_operating_system_type):
+        self.tt_set: bool = True
+        self.architecture: target_tripple_architecture_type = architecture
+        self.vendor: target_tripple_vendor_type = vendor
+        self.operating_system: target_tripple_operating_system_type = operating_system
+
+
+
+
 
 #Basic Blocks (Instructions)
 # -> Terminator Instructions
@@ -992,8 +1359,9 @@ class irbb_cmpxchg(ir_basic_block):
         super().not_supported(self)
 
 class irbb_atomicrmw(ir_basic_block):
-    def __init__(self, operation: atomicrmw_op_type, pointer: ir_var, value: ir_val, ordering: atomic_memory_ordering_constraints_type, volatile: bool = False, syncscope: str = None, align: int = None) -> None:
+    def __init__(self, old_var: ir_val, operation: atomicrmw_op_type, pointer: ir_var, value: ir_val, ordering: atomic_memory_ordering_constraints_type, volatile: bool = False, syncscope: str = None, align: int = None) -> None:
         super().__init__()
+        self.old_var: ir_var = old_var
         self.operation: atomicrmw_op_type = operation
         self.pointer: ir_var = pointer
         self.value: ir_val = value
@@ -1003,7 +1371,7 @@ class irbb_atomicrmw(ir_basic_block):
         self.align: int = align
     
     def generate(self):
-        out = "atomicrmw"
+        out = "{} = atomicrmw".format(self.old_var.str_rep())
         if self.volatile:
             out += " volatile"
         out += " {} {}* {}, {}".format(self.operation.value, self.pointer.str_ty(), self.pointer.str_rep(), self.value.str_ty(), self.value.str_rep())
@@ -1255,7 +1623,7 @@ class irbb_call(ir_basic_block):
         self.addrspace: int = addrspace
         self.fn_attrs: list[function_attribute_types] = fn_attrs
         self.operand_bundle = operand_bundle                    #NOT SUPPORTED FOR NOW!
-        if len(self.operand_bundle) is not 0:
+        if len(self.operand_bundle) != 0:
             print("ATTENTION -> Operation Bundles in function calls are not supported for now!")
         
     def generate(self):
@@ -1274,7 +1642,7 @@ class irbb_call(ir_basic_block):
         out += " {} @{}(".format(self.result_var.str_ty(), self.fn_ptr)
         for i, fa in enumerate(self.fn_args):
             tmp = "{} {}".format(fa.str_ty(), fa.str_rep())
-            if i is not 0:
+            if i != 0:
                 tmp = ", " + tmp
             out += tmp
         out += ")"
@@ -1330,9 +1698,10 @@ x.add_basic_block(irbb_store(ir_var(ir_dtype.i32, "ab"), ir_var(ir_dtype.i64, "c
 x.add_basic_block(irbb_load(ir_var(ir_dtype.i32, "cc"), ir_var(ir_dtype.i32, "bb"), 4))
 x.add_basic_block(irbb_add(ir_var(ir_dtype.i32, "o"), ir_var(ir_dtype.i32, "l"), ir_var(ir_dtype.i32, "p"), True))
 x.add_basic_block(irbb_fadd(ir_var(ir_dtype.float, "j"), ir_var(ir_dtype.float, "n"), ir_val(ir_dtype.float, "4.0"), [fast_math_flags_type.nnan, fast_math_flags_type.afn]))
-x.add_basic_block(irbb_atomicrmw(atomicrmw_op_type._add, ir_var(ir_dtype.i32, "k"), ir_val(ir_dtype.i32, "5"), atomic_memory_ordering_constraints_type.acquire, True, "test", 3))
-x.add_basic_block(irbb_return())
+x.add_basic_block(irbb_atomicrmw(ir_var(ir_dtype.i32, "old"), atomicrmw_op_type._add, ir_var(ir_dtype.i32, "k"), ir_val(ir_dtype.i32, "5"), atomic_memory_ordering_constraints_type.acquire, True, "test", 3))
 x.add_basic_block(irbb_call(ir_var(ir_dtype.i32, "2"), "add4", [ir_var(ir_dtype.i16, "a"), ir_var(ir_dtype.float, "b")], tail_type._musttail, [], calling_conventions_types.cc_10, [], 4, [], []))
+x.add_basic_block(irbb_return())
 print(x.generate())
 
-y = irbb_insertelement()
+y = irbb_global_declare_function(ir_fnc_var(ir_dtype.i32), "test")
+print(y.generate())

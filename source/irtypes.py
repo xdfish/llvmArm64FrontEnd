@@ -396,6 +396,103 @@ class target_datalayout_mangling_type(Enum):
     a = "a"
     """XCOFF mangling"""
 
+class target_datalayout_addr_space:
+    def __init__(self, values: list) -> None:
+        self.values: list[str] = values
+
+    def generate(self):
+        out = ""
+        for i, s in enumerate(self.sizes):
+            tmp = "{}"
+            if i != 0:
+                tmp = ":" + tmp
+            out += tmp
+        return out
+
+class target_datalayout_ptr_align:
+    def __init__(self, size: int, abi: int, pref: int = None, idx: int = None) -> None:
+        self.size: int = size
+        self.abi: int = abi
+        self.pref: int = pref
+        self.idx: int = idx
+
+    def generate(self):
+        out = "p[n]:{}:{}".format(self.size, self.abi)
+        if self.pref:
+            out += ":{}".format(self.pref)
+        if self.idx:
+            out += ":{}".format(self.idx)
+        return out
+
+class target_datalayout_int_align:
+    def __init__(self, size: int, abi: int, pref: int = None) -> None:
+        self.size: int = size
+        self.abi: int = abi
+        self.pref: int = pref
+
+    def generate(self):
+        out = "i{}:{}".format(self.size, self.abi)
+        if self.pref:
+            out += ":{}".format(self.pref)
+        return out
+
+class target_datalayout_vector_align:
+    def __init__(self, size: int, abi: int, pref: int = None) -> None:
+        self.size: int = size
+        self.abi: int = abi
+        self.pref: int = pref
+    
+    def generate(self):
+        out = "v{}:{}".format(self.size, self.abi)
+        if self.pref:
+            out += ":{}".format(self.pref)
+        return out
+
+class target_datalayout_float_align:
+    def __init__(self, size: int, abi: int, pref: int = None) -> None:
+        self.size: int = size
+        self.abi: int = abi
+        self.pref: int = pref
+    
+    def generate(self):
+        out = "f{}:{}".format(self.size, self.abi)
+        if self.pref:
+            out += ":{}".format(self.pref)
+        return out
+
+class target_datalayout_obj_align:
+    def __init__(self, abi: int, pref: int = None) -> None:
+        self.abi: int = abi
+        self.pref: int = pref
+    
+    def generate(self):
+        out = "a:{}".format(self.abi)
+        if self.pref:
+            out += ":{}".format(self.pref)
+        return out
+
+class target_datalayout_fnc_align:
+    def __init__(self, type: str, abi: int) -> None:
+        self.type = type
+        self.abi: int = abi
+    
+    def generate(self):
+        out = "F{}{}".format(self.type, self.abi)
+        return out
+
+class target_datalayout_native_i_width:
+    def __init__(self, sizes: list) -> None:
+        self.sizes: list[int] = sizes
+    
+    def generate(self):
+        out = "n"
+        for i, s in enumerate(self.sizes):
+            tmp = "{}"
+            if i != 0:
+                tmp = ":" + tmp
+            out += tmp
+        return out
+
 class target_tripple_architecture_type(Enum):
     x86_64 = "x86_64"
     arm64 = "arm64"
@@ -406,6 +503,7 @@ class target_tripple_vendor_type(Enum):
 class target_tripple_operating_system_type(Enum):
     macosx10_15_7 = "macosx10.15.7"
     macosx11_0_0 = "macosx11.0.0"
+
 
 class module_flag_type(Enum):
     """
@@ -418,6 +516,7 @@ class module_flag_type(Enum):
     append = "5"
     append_unique = "6"
     max = "7"
+
 
 # Help-Function - only for optional Enums
 def opt(optional_variable: Enum) -> str:
@@ -736,92 +835,25 @@ class ir_file_target_triple:
 
 #NOT SUPPORTED
 class ir_file_target_datalayout:
-    class addr_space:
-        def __init__(self, values: list) -> None:
-            self.values = values
 
-        def generate(self):
-            out = ""
-            for i, s in enumerate(self.sizes):
-                tmp = "{}"
-                if i != 0:
-                    tmp = ":" + tmp
-                out += tmp
-            return out
-
-    class int_align:
-        def __init__(self, size: int, abi: int, pref: int = None) -> None:
-            self.size: int = size
-            self.abi: int = abi
-            self.pref: int = pref
-
-        def generate(self):
-            out = "i{}:{}".format(self.size, self.abi)
-            if self.pref:
-                out += ":{}".format(self.pref)
-            return out
-
-    class vector_align:
-        def __init__(self, size: int, abi: int, pref: int = None) -> None:
-            self.size: int = size
-            self.abi: int = abi
-            self.pref: int = pref
-        
-        def generate(self):
-            out = "v{}:{}".format(self.size, self.abi)
-            if self.pref:
-                out += ":{}".format(self.pref)
-            return out
-
-    class float_align:
-        def __init__(self, size: int, abi: int, pref: int = None) -> None:
-            self.size: int = size
-            self.abi: int = abi
-            self.pref: int = pref
-        
-        def generate(self):
-            out = "f{}:{}".format(self.size, self.abi)
-            if self.pref:
-                out += ":{}".format(self.pref)
-            return out
-
-    class obj_align:
-        def __init__(self, abi: int, pref: int = None) -> None:
-            self.abi: int = abi
-            self.pref: int = pref
-        
-        def generate(self):
-            out = "a:{}".format(self.abi)
-            if self.pref:
-                out += ":{}".format(self.pref)
-            return out
-
-    class fnc_align:
-        def __init__(self, type: str, abi: int) -> None:
-            self.type = type
-            self.abi: int = abi
-        
-        def generate(self):
-            out = "F{}{}".format(self.type, self.abi)
-            return out
-
-    class native_i_width:
-        def __init__(self, sizes: list) -> None:
-            self.sizes: list[int] = sizes
-        
-        def generate(self):
-            out = "n"
-            for i, s in enumerate(self.sizes):
-                tmp = "{}"
-                if i != 0:
-                    tmp = ":" + tmp
-                out += tmp
-            return out
-
-    def __init__(self, little_endian: bool = None, stack_align: int = None, mangling: target_datalayout_mangling_type = None, i1: int = None, i8: int = None, i16: int = None, i32: int = None, i64: int = None, i128: int = None) -> None:
+    def __init__(self, little_endian: bool = None, stack_align: int = None, mem_addr_space: target_datalayout_addr_space = None, glob_var_addr_space: target_datalayout_addr_space = None, obj_addr_space: target_datalayout_addr_space = None, ptr_align: target_datalayout_ptr_align = None, int_align: target_datalayout_int_align = None, vector_align: target_datalayout_vector_align = None, float_align: target_datalayout_float_align = None, obj_align: target_datalayout_obj_align = None, fnc_align: target_datalayout_fnc_align = None, mangling: target_datalayout_mangling_type = None, native_int_widths: target_datalayout_addr_space = None, ptr_addr_space: list = None) -> None:
         self.little_endian: bool = little_endian
-        self.mangling: target_datalayout_mangling_type = mangling
         self.stack_align: int = stack_align
+        self.mem_addr_space: target_datalayout_addr_space = mem_addr_space
+        self.glob_var_addr_space: target_datalayout_addr_space = glob_var_addr_space
+        self.obj_addr_space: target_datalayout_addr_space = obj_addr_space
+        self.ptr_align: target_datalayout_ptr_align = ptr_align
+        self.int_align: target_datalayout_int_align = int_align
+        self.vector_align: target_datalayout_vector_align = vector_align
+        self.float_align: target_datalayout_float_align = float_align
+        self.obj_align: target_datalayout_obj_align = obj_align
+        self.fnc_align: target_datalayout_fnc_align = fnc_align
+        self.mangling: target_datalayout_mangling_type = mangling
+        self.native_int_widths: target_datalayout_addr_space = native_int_widths
+        ptr_addr_space: list[target_datalayout_addr_space] = ptr_addr_space #NOT SUPPORTED
+        if self.ptr_addr_space:
+            print("ATTENTION - ptr_addr_space it not supported for now!")
+
 
     def generate(self):
         tmp_arr = []
@@ -832,18 +864,34 @@ class ir_file_target_datalayout:
                 tmp_arr.append("e")
         if self.mangling:
             tmp_arr.append("m:{}".format(self.mangling.value))
-        if self.i1:
-            tmp_arr.append("i1:{}".format(self.i1))
-        if self.i8:
-            tmp_arr.append("i8:{}".format(self.i8))
-        if self.i16:
-            tmp_arr.append("i16:{}".format(self.i16))        
-        if self.i32:
-            tmp_arr.append("i32:{}".format(self.i32))
-        if self.i64:
-            tmp_arr.append("i64:{}".format(self.i64))
-        if self.i128:
-            tmp_arr.append("i128:{}".format(self.i128))
+        if self.fnc_align:
+            tmp_arr.append(self.fnc_align.generate())
+        if self.obj_align:
+            tmp_arr.append(self.obj_align.generate())
+        if self.float_align:
+            tmp_arr.append(self.float_align.generate())
+        if self.vector_align:
+            tmp_arr.append(self.vector_align.generate())
+        if self.int_align:
+            tmp_arr.append(self.int_align.generate())
+        if self.ptr_align:
+            tmp_arr.append(self.ptr_align.generate())
+        if self.obj_addr_space:
+            tmp_arr.append("A{}".format(self.obj_addr_space.generate()))
+        if self.glob_var_addr_space:
+            tmp_arr.append("G{}".format(self.glob_var_addr_space.generate()))
+        if self.mem_addr_space:
+            tmp_arr.append("P{}".format(self.mem_addr_space.generate()))
+        if self.stack_align:
+            tmp_arr.append("S{}".format(self.stack_align))
+        
+        out = "target datalayout = "
+        for i, e in enumerate(tmp_arr):
+            if i == 0:
+                out += e
+            else:
+                out += "-{}".format(e)
+        
 
 class ir_file:
     def __init__(self, source_filename: str = None) -> None:

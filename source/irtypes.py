@@ -383,17 +383,17 @@ class tail_type(Enum):
     _notail = "notail"
 
 class target_datalayout_mangling_type(Enum):
-    e = "e"
+    elf = "e"
     """ELF mangling"""
-    m = "m"
+    mips = "m"
     """Mips mangling"""
-    o = "o"
+    macho = "o"
     """Mach-O mangling"""
-    x = "x"
+    win_x86_coff = "x"
     """Windows x86 COFF mangling"""
-    w = "w"
+    win_coff = "w"
     """Windows COFF mangling"""
-    a = "a"
+    xcoff = "a"
     """XCOFF mangling"""
 
 class target_datalayout_addr_space:
@@ -503,7 +503,6 @@ class target_tripple_vendor_type(Enum):
 class target_tripple_operating_system_type(Enum):
     macosx10_15_7 = "macosx10.15.7"
     macosx11_0_0 = "macosx11.0.0"
-
 
 class module_flag_type(Enum):
     """
@@ -747,6 +746,9 @@ class ir_global_metadata_module_flags:
         self.id: str = id
         self.value: ir_val = value
 
+    def str_rep(self):
+        return "!{}".format(self.name)
+
     def generate(self):
         out = "!{} = !{".format(self.name)
         out += "i32 {}, !\"{}\", {} {}}".format(self.type.value, self.id, self.value.str_ty(), self.value.str_rep())
@@ -757,6 +759,9 @@ class ir_global_metadata:
     def __init__(self, name: str, id: str) -> None:
         self.name: str = name
         self.id: str = id
+
+    def str_rep(self):
+        return "!{}".format(self.name)
 
     def generate(self):
         out = "!{} = !{".format(self.name)
@@ -791,7 +796,7 @@ class ir_function:
         self.basic_blocks.append(basic_block)
 
     def generate(self):
-        out = "define {}{}{}{}{}{} @{}(".format(opt(self.linkage), opt(self.preemption_specifier), opt(self.visability), opt(self.dll_storage_class), opt(self.cconv), self.return_var.str_rep(), self.function_name)
+        out = "define {}{}{}{}{}{} @{}(".format(opt(self.linkage), opt(self.preemption_specifier), opt(self.visability), opt(self.dll_storage_class), opt(self.cconv), self.return_var.str_ty(), self.function_name)
         for i, a in enumerate(self.argument_list):
             if i == 0:
                 out += "{} {}".format(a.dtype.value, a.name)
@@ -823,7 +828,6 @@ class ir_function:
 
 #IR_FILE
 
-#NOT SUPPORTED
 class ir_file_target_triple:
     def __init__(self, architecture: target_tripple_architecture_type, vendor: target_tripple_vendor_type, operating_system: target_tripple_operating_system_type) -> None:
         self.architecture: target_tripple_architecture_type = architecture
@@ -833,27 +837,81 @@ class ir_file_target_triple:
     def generate(self):
         return "target triple = \"{}-{}-{}\"".format(self.architecture.value, self.vendor.value, self.operating_system.value)
 
-#NOT SUPPORTED
 class ir_file_target_datalayout:
-
-    def __init__(self, little_endian: bool = None, stack_align: int = None, mem_addr_space: target_datalayout_addr_space = None, glob_var_addr_space: target_datalayout_addr_space = None, obj_addr_space: target_datalayout_addr_space = None, ptr_align: target_datalayout_ptr_align = None, int_align: target_datalayout_int_align = None, vector_align: target_datalayout_vector_align = None, float_align: target_datalayout_float_align = None, obj_align: target_datalayout_obj_align = None, fnc_align: target_datalayout_fnc_align = None, mangling: target_datalayout_mangling_type = None, native_int_widths: target_datalayout_addr_space = None, ptr_addr_space: list = None) -> None:
+    def __init__(self, little_endian: bool = None, stack_align: int = None, mem_addr_space: target_datalayout_addr_space = None, glob_var_addr_space: target_datalayout_addr_space = None, obj_addr_space: target_datalayout_addr_space = None, ptr_align: list = [], int_align: list = [], vector_align: list = [], float_align: list = [], obj_align: list = [], fnc_align: list = [], mangling: target_datalayout_mangling_type = None, native_int_widths: target_datalayout_addr_space = None, ptr_addr_space: list = []) -> None:
         self.little_endian: bool = little_endian
         self.stack_align: int = stack_align
         self.mem_addr_space: target_datalayout_addr_space = mem_addr_space
         self.glob_var_addr_space: target_datalayout_addr_space = glob_var_addr_space
         self.obj_addr_space: target_datalayout_addr_space = obj_addr_space
-        self.ptr_align: target_datalayout_ptr_align = ptr_align
-        self.int_align: target_datalayout_int_align = int_align
-        self.vector_align: target_datalayout_vector_align = vector_align
-        self.float_align: target_datalayout_float_align = float_align
-        self.obj_align: target_datalayout_obj_align = obj_align
-        self.fnc_align: target_datalayout_fnc_align = fnc_align
+        self.ptr_align: list[target_datalayout_ptr_align] = ptr_align
+        self.int_align: list[target_datalayout_int_align] = int_align
+        self.vector_align: list[target_datalayout_vector_align] = vector_align
+        self.float_align: list[target_datalayout_float_align] = float_align
+        self.obj_align: list[target_datalayout_obj_align] = obj_align
+        self.fnc_align: list[target_datalayout_fnc_align] = fnc_align
         self.mangling: target_datalayout_mangling_type = mangling
         self.native_int_widths: target_datalayout_addr_space = native_int_widths
-        ptr_addr_space: list[target_datalayout_addr_space] = ptr_addr_space #NOT SUPPORTED
+        self.ptr_addr_space: list[target_datalayout_addr_space] = ptr_addr_space #NOT SUPPORTED
         if self.ptr_addr_space:
             print("ATTENTION - ptr_addr_space it not supported for now!")
+    
+    def add_endianess(self, little_endian: bool):
+        self.little_endian: bool = little_endian
 
+    def add_stack_align(self, align: int):
+        self.stack_align: int = align
+
+    def add_mem_addr_space(self, int_values: list):
+        self.mem_addr_space: target_datalayout_addr_space = target_datalayout_addr_space(int_values)
+
+    def add_glob_var_addr_space(self, int_values: list):
+        self.glob_var_addr_space: target_datalayout_addr_space = target_datalayout_addr_space(int_values)
+    
+    def add_obj_addr_space(self, int_values: list):
+        self.obj_addr_space: target_datalayout_addr_space = target_datalayout_addr_space(int_values)
+
+    def add_ptr_align_obj(self, ptr_align: target_datalayout_ptr_align):
+        self.ptr_align.append(ptr_align)
+    
+    def add_ptr_align(self, size: int, abi: int, pref: int = None):
+        self.ptr_align.append(target_datalayout_ptr_align(size, abi, pref))
+        
+    def add_int_align_obj(self, int_align: target_datalayout_int_align):
+        self.int_align.append(int_align)
+
+    def add_int_align(self, size: int, abi: int, pref: int = None):
+        self.int_align.append(target_datalayout_int_align(size, abi, pref))
+    
+    def add_vector_align_obj(self, vector_align: target_datalayout_vector_align):
+        self.vector_align.append(vector_align)
+    
+    def add_vector_align(self, size: int, abi: int, pref: int = None):
+        self.vector_align.append(target_datalayout_vector_align(size, abi, pref))
+    
+    def add_float_align_obj(self, float_align: target_datalayout_float_align):
+        self.float_align.append(float_align)
+
+    def add_float_align(self, size: int, abi: int, pref: int = None):
+        self.float_align.append(target_datalayout_float_align(size, abi, pref))
+    
+    def add_obj_align_obj(self, obj_align: target_datalayout_obj_align):
+        self.obj_align.append(obj_align)
+    
+    def add_obj_align(self, abi: int, pref: int = None):
+        self.obj_align.append(target_datalayout_obj_align(abi, pref))
+
+    def add_fnc_align_obj(self, fnc_align: target_datalayout_fnc_align):
+        self.fnc_align.append(fnc_align)
+
+    def add_fnc_align(self, type: str, abi: int):
+        self.fnc_align.append(target_datalayout_fnc_align(type, abi))
+
+    def add_mangling(self, mangling_type: target_datalayout_mangling_type):
+        self.mangling: target_datalayout_mangling_type = target_datalayout_mangling_type(mangling_type)
+
+    def add_native_int_widths(self, int_values: list):
+        self.native_int_widths: target_datalayout_addr_space = target_datalayout_addr_space(int_values)
 
     def generate(self):
         tmp_arr = []
@@ -864,18 +922,18 @@ class ir_file_target_datalayout:
                 tmp_arr.append("e")
         if self.mangling:
             tmp_arr.append("m:{}".format(self.mangling.value))
-        if self.fnc_align:
-            tmp_arr.append(self.fnc_align.generate())
-        if self.obj_align:
-            tmp_arr.append(self.obj_align.generate())
-        if self.float_align:
-            tmp_arr.append(self.float_align.generate())
-        if self.vector_align:
-            tmp_arr.append(self.vector_align.generate())
-        if self.int_align:
-            tmp_arr.append(self.int_align.generate())
-        if self.ptr_align:
-            tmp_arr.append(self.ptr_align.generate())
+        for a in self.fnc_align:
+            tmp_arr.append(a.generate())
+        for a in self.obj_align:
+            tmp_arr.append(a.generate())
+        for a in self.float_align:
+            tmp_arr.append(a.generate())
+        for a in self.vector_align:
+            tmp_arr.append(a.generate())
+        for a in self.int_align:
+            tmp_arr.append(a.generate())
+        for a in self.ptr_align:
+            tmp_arr.append(a.generate())
         if self.obj_addr_space:
             tmp_arr.append("A{}".format(self.obj_addr_space.generate()))
         if self.glob_var_addr_space:
@@ -885,26 +943,24 @@ class ir_file_target_datalayout:
         if self.stack_align:
             tmp_arr.append("S{}".format(self.stack_align))
         
-        out = "target datalayout = "
+        out = "target datalayout = \""
         for i, e in enumerate(tmp_arr):
             if i == 0:
                 out += e
             else:
                 out += "-{}".format(e)
+        return out + "\""
         
-
 class ir_file:
-    def __init__(self, source_filename: str = None) -> None:
+    def __init__(self, source_filename: str = None, target_datalayout: ir_file_target_datalayout = None, target_triple: ir_file_target_triple = None) -> None:
         self.source_filename: str = source_filename
         
         #Target_Datalayout
-        self.td_set: bool = False
-        
+        self.target_datalayout:  ir_file_target_datalayout = target_datalayout
 
         #Target_Tripple
         #<ARCHITECTURE> - <VENDOR> - <OPERATING_SYSTEM>
-        self.tt_set: bool = False
-
+        self.target_triple: ir_file_target_triple = target_triple
 
         # CONTENT --------
         #->Declarations
@@ -922,25 +978,119 @@ class ir_file:
         self.glob_metadata_ident: list[ir_global_metadata] = []
 
 
-    def set_target_datalayout(self, little_endian: bool, mangling: target_datalayout_mangling_type, stack_align: int, i1: int = None, i8: int = None, i16: int = None, i32: int = None, i64: int = None, i128: int = None, native_int_width: list = []):
-        self.td_set: bool = True
-        self.little_endian: bool = little_endian
-        self.mangling: target_datalayout_mangling_type = mangling
-        self.stack_align: int = stack_align
-        self.i1: int = i1
-        self.i8: int = i8
-        self.i16: int = i16
-        self.i32: int = i32
-        self.i64: int = i64
-        self.i128: int = i128
+    def set_source_filename(self, source_filename: str):
+        self.source_filename: str = source_filename
 
-    def set_target_tripple(self, architecture: target_tripple_architecture_type, vendor: target_tripple_vendor_type, operating_system: target_tripple_operating_system_type):
-        self.tt_set: bool = True
-        self.architecture: target_tripple_architecture_type = architecture
-        self.vendor: target_tripple_vendor_type = vendor
-        self.operating_system: target_tripple_operating_system_type = operating_system
+    def set_target_datalayout(self, target_datalayout: ir_file_target_datalayout):
+        self.target_datalayout: ir_file_target_datalayout = target_datalayout
 
+    def set_target_tripple(self, target_triple: ir_file_target_triple):
+        self.target_triple: ir_file_target_triple = target_triple
 
+    def add_glob_var_declaration(self, glob_var_declaration: irbb_global_declare_variable):
+        self.glob_var_declarations.append(glob_var_declaration)
+    
+    def add_glob_fnc_declaration(self, glob_fnc_declaration: irbb_global_declare_function):
+        self.glob_fnc_declarations.append(glob_fnc_declaration)
+    
+    def add_glob_fnc(self, glob_fnc: ir_function):
+        self.glob_fnc.append(glob_fnc)
+    
+    def add_glob_attribs_fnc(self, glob_attribs_fnc: ir_global_attribs_function):
+        self.glob_attribs_fnc.append(glob_attribs_fnc)
+    
+    def add_glob_attribs_param(self, glob_attribs_param: ir_global_attribs_parameter):
+        self.glob_attribs_param.append(glob_attribs_param)
+    
+    def add_glob_metadata_module_flags(self, glob_metadata_module_flags: ir_global_metadata_module_flags):
+        self.glob_metadata_module_flags.append(glob_metadata_module_flags)
+
+    def add_glob_metadata_ident(self, glob_metadata_ident: ir_global_metadata):
+        self.glob_metadata_ident.append(glob_metadata_ident)
+
+    def generate(self):
+        def nl(txt: str = None):
+            if txt:
+                return "{}\n".format(txt)
+            else:
+                return "\n"
+        out = ""
+
+        #Source_filename
+        if self.source_filename:
+            out += nl("source_filename = \"{}\"".format(self.source_filename))
+        #target_datalayout
+        if self.target_datalayout:
+            out += nl(self.target_datalayout.generate())
+        #target_triple
+        if self.target_triple:
+            out += nl(self.target_triple.generate())
+        
+        if self.source_filename or self.target_datalayout or self.target_triple:
+            out += nl()
+
+        #global variables
+        if self.glob_var_declarations:
+            for gv in self.glob_var_declarations:
+                out += nl(gv.generate())
+            out += nl()
+        
+        #functions
+        if self.glob_fnc:
+            for fnc in self.glob_fnc:
+                out += nl(fnc.generate())
+
+        #function declarations
+        if self.glob_fnc_declarations:
+            for gf in self.glob_fnc_declarations:
+                out += nl(gf.generate())
+
+        
+        #Function attributes:
+        if self.glob_attribs_fnc:
+            for fa in self.glob_attribs_fnc:
+                out += nl(fa.generate())
+        #Parameter attributes:
+        if self.glob_attribs_param:
+            for pa in self.glob_attribs_param:
+                out += nl(pa.generate())
+        
+        if self.glob_attribs_fnc or self.glob_attribs_param:
+            out += nl()
+
+        #llvm module flags
+        if self.glob_metadata_module_flags:
+            tmp = "!llvm.module.flags = !{"
+            for i, md in enumerate(self.glob_metadata_module_flags):
+                if i != 0:
+                    tmp += ", "
+                tmp += md.str_rep()
+            tmp += "}"
+            out += nl(tmp)
+
+        #llvm mident
+        if self.glob_metadata_ident:
+            tmp = "!llvm.ident = !{"
+            for i, md in enumerate(self.glob_metadata_ident):
+                if i != 0:
+                    tmp += ", "
+                tmp += md.str_rep()
+            tmp += "}"
+            out += nl(tmp)
+
+        if self.glob_metadata_module_flags or self.glob_metadata_ident:
+            out += nl()
+
+        #Metadata
+        for mmd in self.glob_metadata_module_flags:
+            out += nl(mmd.generate())
+
+        for imd in self.glob_metadata_ident:
+            out += nl(imd.generate())
+        
+        return out
+
+            
 
 
 
@@ -1739,6 +1889,19 @@ class irbb_llvm_va_copy(ir_basic_block):
 
 
 
+
+file = ir_file("test_file.c")
+file.set_target_tripple(ir_file_target_triple(target_tripple_architecture_type.arm64, target_tripple_vendor_type.apple, target_tripple_operating_system_type.macosx11_0_0))
+
+tl = ir_file_target_datalayout(True, 128)
+tl.add_mangling(target_datalayout_mangling_type.macho)
+tl.add_int_align(64, 64)
+tl.add_int_align(128, 128)
+tl.add_native_int_widths([32, 64])
+tl.add_stack_align(128)
+
+file.set_target_datalayout(tl)
+
 x = ir_function(ir_var(ir_dtype.i32), "testFunction")
 x.add_basic_block(irbb_alloca(ir_var(ir_dtype.i64, "t0"), 4))
 x.add_basic_block(irbb_alloca(ir_var(ir_dtype.float, "t1"), 4))
@@ -1749,7 +1912,16 @@ x.add_basic_block(irbb_fadd(ir_var(ir_dtype.float, "j"), ir_var(ir_dtype.float, 
 x.add_basic_block(irbb_atomicrmw(ir_var(ir_dtype.i32, "old"), atomicrmw_op_type._add, ir_var(ir_dtype.i32, "k"), ir_val(ir_dtype.i32, "5"), atomic_memory_ordering_constraints_type.acquire, True, "test", 3))
 x.add_basic_block(irbb_call(ir_var(ir_dtype.i32, "2"), "add4", [ir_var(ir_dtype.i16, "a"), ir_var(ir_dtype.float, "b")], tail_type._musttail, [], calling_conventions_types.cc_10, [], 4, [], []))
 x.add_basic_block(irbb_return())
-print(x.generate())
 
-y = irbb_global_declare_function(ir_fnc_var(ir_dtype.i32), "test")
-print(y.generate())
+y = ir_function(ir_var(ir_dtype.i32), "testFunction")
+y.add_basic_block(irbb_alloca(ir_var(ir_dtype.i64, "t0"), 4))
+y.add_basic_block(irbb_alloca(ir_var(ir_dtype.float, "t1"), 4))
+y.add_basic_block(irbb_load(ir_var(ir_dtype.i32, "cc"), ir_var(ir_dtype.i32, "bb"), 4))
+y.add_basic_block(irbb_atomicrmw(ir_var(ir_dtype.i32, "old"), atomicrmw_op_type._add, ir_var(ir_dtype.i32, "k"), ir_val(ir_dtype.i32, "5"), atomic_memory_ordering_constraints_type.acquire, True, "test", 3))
+y.add_basic_block(irbb_call(ir_var(ir_dtype.i32, "2"), "add4", [ir_var(ir_dtype.i16, "a"), ir_var(ir_dtype.float, "b")], tail_type._musttail, [], calling_conventions_types.cc_10, [], 4, [], []))
+y.add_basic_block(irbb_return())
+
+file.add_glob_fnc(x)
+file.add_glob_fnc(y)
+
+print(file.generate())

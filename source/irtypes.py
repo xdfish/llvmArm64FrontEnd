@@ -590,7 +590,6 @@ class ir_ptr_var(ir_param):
         self.ptr: str = ""
     
 
-
 #Basic_Blocks (Protocoll)
 class ir_basic_block:
     
@@ -1089,9 +1088,6 @@ class ir_file:
             out += nl(imd.generate())
         
         return out
-
-            
-
 
 
 #Basic Blocks (Instructions)
@@ -1889,7 +1885,7 @@ class irbb_llvm_va_copy(ir_basic_block):
 
 
 
-
+""" EXAMPLE
 file = ir_file("test_file.c")
 file.set_target_tripple(ir_file_target_triple(target_tripple_architecture_type.arm64, target_tripple_vendor_type.apple, target_tripple_operating_system_type.macosx11_0_0))
 
@@ -1925,3 +1921,4 @@ file.add_glob_fnc(x)
 file.add_glob_fnc(y)
 
 print(file.generate())
+"""

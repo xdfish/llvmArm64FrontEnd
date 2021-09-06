@@ -286,6 +286,10 @@ class ir_dtype(Enum):
     """
     Pointer 128-bit floating-point value (two 64-bits)
     """
+    NONE = "NONE"
+    """
+    NONE
+    """
 irgroup_dtype_integer = [ir_dtype.i16, ir_dtype.i32, ir_dtype.i64]
 irgroup_dtype_float = [ir_dtype.half, ir_dtype.bfloat, ir_dtype.float, ir_dtype.double, ir_dtype.fp128, ir_dtype.x86_fp80, ir_dtype.ppc_fp128]   
 def dtype_check(params: list, allowed_types: list = None, function: str = "") -> bool:
@@ -769,7 +773,7 @@ class ir_global_metadata:
     
 #IR_FUNCTION
 class ir_function: 
-    def __init__(self, return_var: ir_fnc_var, function_name: str, linkage:linkage_types = None, preemption_specifier: preemption_specifier_types = None, visability : visability_types = None, dll_storage_class: dll_storage_types = None, cconv: calling_conventions_types = None, argument_list: list = [], unnamed_local: unnamed_local_type = None, addr_space: int = None, function_attribs: list = [], section: str = None, comdat: comdat_types = None, align: int = None, gc: str = None, prefix: ir_val = None, prologue: None = None, personality: bool = None, meta_data: str = None):
+    def __init__(self, return_var: ir_fnc_var, function_name: str, linkage:linkage_types = None, preemption_specifier: preemption_specifier_types = None, visability : visability_types = None, dll_storage_class: dll_storage_types = None, cconv: calling_conventions_types = None, argument_list: list = list(), unnamed_local: unnamed_local_type = None, addr_space: int = None, function_attribs: list = [], section: str = None, comdat: comdat_types = None, align: int = None, gc: str = None, prefix: ir_val = None, prologue: None = None, personality: bool = None, meta_data: str = None):
         self.linkage:linkage_types = linkage
         self.preemption_specifier: preemption_specifier_types = preemption_specifier
         self.visability : visability_types = visability
@@ -791,16 +795,19 @@ class ir_function:
         self.meta_data: str = meta_data
         self.basic_blocks: list[ir_basic_block] = []
     
-    def add_basic_block(self, basic_block: ir_basic_block):
+    def add_basic_block(self, basic_block: ir_basic_block) -> None:
         self.basic_blocks.append(basic_block)
 
-    def generate(self):
+    def add_argument(self, arg: ir_var) -> None:
+        self.argument_list.append(arg)
+
+    def generate(self) -> str:
         out = "define {}{}{}{}{}{} @{}(".format(opt(self.linkage), opt(self.preemption_specifier), opt(self.visability), opt(self.dll_storage_class), opt(self.cconv), self.return_var.str_ty(), self.function_name)
         for i, a in enumerate(self.argument_list):
             if i == 0:
-                out += "{} {}".format(a.dtype.value, a.name)
+                out += "{} {}".format(a.ty.value, a.name)
             else:
-                out += ", {} {}".format(a.dtype.value, a.name)
+                out += ", {} {}".format(a.ty.value, a.name)
         out += "){}".format(opt(self.unnamed_local))
         if self.addr_space:
             out += " addrspace({})".format(self.addr_space)

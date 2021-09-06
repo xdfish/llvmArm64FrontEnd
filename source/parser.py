@@ -1,4 +1,3 @@
-import parser
 from log import log
 from enum import Enum
 import os.path
@@ -10,7 +9,7 @@ TODO:\n
 -> Input Parameter der Main-Funktion richtig parsen. Aktuell werden R0 bis R7 scheinbar ohne Grund vewendet!?\n
 """
 
-class asm_type_ptype(Enum):
+class asm_ptype(Enum):
     """
     Parameter Types
     Describes the type of the parameter (Options below)
@@ -25,7 +24,7 @@ class asm_type_ptype(Enum):
     sp_address = "SP_ADDRESS"
     unkown = "UNKNOWN"
 
-class asm_type_ftype(Enum):
+class asm_ftype(Enum):
     """
     Functional Type od the Parameter
     Describes the functional type of the parameter (Options below)
@@ -35,7 +34,12 @@ class asm_type_ftype(Enum):
     output = "OUTPUT"
     general_purpose = "GP"
 
-class asm_type_dtype(Enum):
+class asm_fnctype(Enum):
+    sys_fnc = "SYS_FNC"
+    user_fnc = "USER_FNC"
+    undefined =  "UNDEFINED"
+    
+class asm_dtype(Enum):
     """
     Possible Datatypes of the ARM-Registers.
     This also provides the supported register for tge parsing process
@@ -73,7 +77,8 @@ class asm_type_dtype(Enum):
     128Bit Float (Q-Register)
     """
 
-supported_register_types = set(reg.value for reg in asm_type_dtype)
+supported_register_types = set(reg.value for reg in asm_dtype)
+
 
 class asm_inst:
     def __init__(self, function : str = "", address : str = "", hexValue : str = "", instruction : str = "", params : list = []):
@@ -123,67 +128,67 @@ class asm_param:
         """
         self.raw : str = value
         self.value : any = value
-        self.ptype : asm_type_ptype = asm_type_ptype.sys_init #ParameterType (Number, Pointer (address), Register)
-        self.ftype : asm_type_ftype = asm_type_ftype.sys_init #FunctionType (Input, Output or GP-Register)
-        self.dtype : asm_type_dtype = asm_type_dtype.sys_init #DataType (Integer, Float etc.)
+        self.ptype : asm_ptype = asm_ptype.sys_init #ParameterType (Number, Pointer (address), Register)
+        self.ftype : asm_ftype = asm_ftype.sys_init #FunctionType (Input, Output or GP-Register)
+        self.dtype : asm_dtype = asm_dtype.sys_init #DataType (Integer, Float etc.)
 
         #Preserver Registers (only those 3 are supported for now)
         if value == "sp":
-            self.ptype = asm_type_ptype.sp_pointer
+            self.ptype = asm_ptype.sp_pointer
         elif value == "pc":
-            self.ptype = asm_type_ptype.pc_pointer
+            self.ptype = asm_ptype.pc_pointer
         elif value == "lr":
-            self.ptype = asm_type_ptype.lr_pointer
+            self.ptype = asm_ptype.lr_pointer
         
         #Absolute Values
         elif value[0] == "#":
-            self.ptype = asm_type_ptype.number
+            self.ptype = asm_ptype.number
             self.value = value[1:]
 
         #Registers
         elif value[0] in supported_register_types:
-            self.ptype = asm_type_ptype.register
+            self.ptype = asm_ptype.register
             if value[0] == "w":           #32Bit Integer
-                self.dtype = asm_type_dtype.i32
+                self.dtype = asm_dtype.i32
             elif value[0] == "x":         #64Bit Integer
-                self.dtype = asm_type_dtype.i64
+                self.dtype = asm_dtype.i64
             elif value[0] == "b":         #Float (128B to 8Bit) incomming
-                self.dtype = asm_type_dtype.f8
+                self.dtype = asm_dtype.f8
             elif value[0] == "h":         #Float (128B to 8Bit) incomming
-                self.dtype = asm_type_dtype.f16
+                self.dtype = asm_dtype.f16
             elif value[0] == "s":         #Float (128B to 8Bit) incomming
-                self.dtype = asm_type_dtype.f32
+                self.dtype = asm_dtype.f32
             elif value[0] == "d":         #Float (128B to 8Bit) incomming
-                self.dtype = asm_type_dtype.f64
+                self.dtype = asm_dtype.f64
             elif value[0] == "q":         #Float (128B to 8Bit) incomming
-                self.dtype = asm_type_dtype.f128
+                self.dtype = asm_dtype.f128
             
             #new value (absolute value)
             if value[1:] == "zr":       #Zero Register
                     self.value = 0
-                    self.ptype = asm_type_ptype.number
+                    self.ptype = asm_ptype.number
             else:
                 self.value = int(value[1:])
 
                 #Analyze Input/Output/GP
                 if self.value <= 7:
-                    self.ftype = asm_type_ftype.input
+                    self.ftype = asm_ftype.input
                 elif self.value == 8:
-                    self.ftype = asm_type_ftype.output
+                    self.ftype = asm_ftype.output
                 else:
-                    self.ftype = asm_type_ftype.general_purpose
+                    self.ftype = asm_ftype.general_purpose
 
         #(RAM) Address
         elif value[0] == "[" and value[-1] == "]":
             if value[1:3] == "sp":
-                self.ptype = asm_type_ptype.sp_address
+                self.ptype = asm_ptype.sp_address
             else:
-                self.ptype = asm_type_ptype.address
+                self.ptype = asm_ptype.address
             self.value = value[1:-1]
         
         #Unknown Types
         else:
-            self.ptype = asm_type_ptype.unkown
+            self.ptype = asm_ptype.unkown
 
 
 class asm_function:
@@ -198,7 +203,9 @@ class asm_function:
         self.instructions: list[asm_inst] = []
         self.input_parameter: list[asm_param] = []
         self.return_parameter: asm_param = asm_param("INIT")
-
+        self.set_name(name)
+        
+        
     def set_name(self, name: str):
         """
         Sets function name of the given function
@@ -207,6 +214,12 @@ class asm_function:
         :type name: str
         """
         self.name = name
+        self.fnc_type: asm_fnctype = asm_fnctype.undefined
+        if len(self.name) > 0:
+            if self.name[:2] == "__":
+                self.fnc_type: asm_fnctype = asm_fnctype.sys_fnc
+            else:
+                self.fnc_type: asm_fnctype = asm_fnctype.user_fnc
         
     def add_instruction(self, instruction: asm_inst):
         """
@@ -217,10 +230,10 @@ class asm_function:
         """
         self.instructions.append(instruction)
         for p in instruction.params:
-            if p.ptype == asm_type_ptype.register:
-                if p.ftype == asm_type_ftype.input:
+            if p.ptype == asm_ptype.register:
+                if p.ftype == asm_ftype.input:
                     self.input_parameter.append(p)
-                elif p.ftype == asm_type_ftype.output:
+                elif p.ftype == asm_ftype.output:
                     self.return_parameter = p
 
     def is_empty(self) -> bool:
@@ -241,7 +254,7 @@ class asm_function:
         known_float_register = []
         deletable_params = []
         for i in self.input_parameter:
-            if i.dtype == asm_type_dtype.i32 or i.dtype == asm_type_dtype.i64:
+            if i.dtype == asm_dtype.i32 or i.dtype == asm_dtype.i64:
                 if i.value not in known_int_register:
                     known_int_register.append(i.value)
                 else:
@@ -263,10 +276,24 @@ class parsed_asm_list:
     :param const_str:   function with the string constants
     :type const_str:    asm_function
     """
-    def __init__(self):
+    def __init__(self, filename: str = None, format: str = None, architecture: str = None, execformat: str = None):
+        
         """
-        Inititaliz the parsed asm list
+        :param filename: Filename of the parsed assembler file, defaults to None
+        :type filename: str, optional
+        :param format: format of teh parsed asssembler code, defaults to None
+        :type format: str, optional
+        :param architecture: architecture of the parsed assembler code, defaults to None
+        :type architecture: str, optional
+        :param execformat: execution format of the parsed assembler code, defaults to None
+        :type execformat: str, optional
         """
+
+        self.filename: str = filename
+        self.format: str = format
+        self.architecure: str = architecture
+        self.execformat: str = execformat
+
         self.functions = []
         self.const_str = None
 
@@ -279,8 +306,6 @@ class parsed_asm_list:
         self.functions.append(function)
         if function.name == "__cstring":
             self.const_str = function
-
-
 
 def parse_asm(raw_asm: str) -> parsed_asm_list:
     """
@@ -303,6 +328,9 @@ def parse_asm(raw_asm: str) -> parsed_asm_list:
     asm_fnc = asm_function()
     for i, line in enumerate(asm_raw):
         if "file format" in line:
+            filename = line.split(":")[0]
+            if "/" in filename:
+                filename = filename.split("/")[-1]
             format = line.split("file format ")[1].split(" ")
             architecture = format[1]
             execformat = format[0]
@@ -343,7 +371,7 @@ def parse_asm(raw_asm: str) -> parsed_asm_list:
                     if curFunction[0] == "<" and curFunction[-1] == ">":
                         curFunction = curFunction[1:-1]
                     # - - - - - - - - - - - - - - - - - - - -
-                    asm_fnc.name = curFunction
+                    asm_fnc.set_name(curFunction)
                     asm_fnc.clean()
                     asm_list.append_function(asm_fnc)
                     asm_fnc = asm_function()

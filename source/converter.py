@@ -12,8 +12,9 @@ from .parser import asm_ptype
 from .parser import asm_ftype
 from .parser import asm_dtype
 from .parser import asm_fnctype
+from .parser import asm_itype
 
-from .irtypes import ir_dtype, ir_fnc_var, ir_var
+from .irtypes import ir_dtype, ir_fnc_var, ir_param, ir_var, irbb_alloca, irbb_store
 from .irtypes import ir_file
 from .irtypes import ir_function
 
@@ -31,6 +32,16 @@ translation_dtype = {
     asm_dtype.sys_init : ir_dtype.NONE
 }
 
+translation_align = {
+    asm_dtype.i32 : 4,
+    asm_dtype.i64 : 8,
+    asm_dtype.f8 : 1,
+    asm_dtype.f16 : 2,
+    asm_dtype.f32 : 4,
+    asm_dtype.f64 : 8,
+    asm_dtype.f128 : 16
+}
+
 def convert_function(fnc: asm_function) -> ir_function:
     ret_dtype: ir_fnc_var = ir_fnc_var(translation_dtype[fnc.return_parameter.dtype])
     function_name: str = fnc.name
@@ -40,10 +51,18 @@ def convert_function(fnc: asm_function) -> ir_function:
     arg_list: list[ir_var] = []
     for i, ip in enumerate(fnc.input_parameter):
         arg_list.append(ir_var(translation_dtype[ip.dtype], ip.value))
-
     fn.argument_list = arg_list
+
+    for i in fnc.instructions:
+        if i.instruction is asm_itype.str:
+            t_source_var = i.params[0].value
+            t_target_var = i.params[1].value
+            t_dtype = translation_dtype[i.params[0].dtype]
+            t_align = translation_align[i.params[0].dtype]
+            fn.add_basic_block(irbb_alloca(ir_var(t_dtype, t_target_var), t_align))
+            fn.add_basic_block(irbb_store(ir_var(t_dtype, t_source_var), ir_var(t_dtype, t_target_var), t_align))
     return fn
-    
+
 def prepare_for_conversion(fnc: asm_function):
     """
     Perparation for the conversion performs a clean process (deleting unnecessary parts of the asm code) and a renaming of all variables

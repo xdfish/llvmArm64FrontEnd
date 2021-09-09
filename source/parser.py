@@ -79,9 +79,31 @@ class asm_dtype(Enum):
 
 supported_register_types = set(reg.value for reg in asm_dtype)
 
+class asm_itype(Enum):
+    sub = "sub"
+    mul = "mul"
+    adrp = "adrp"
+    udf = "udf"
+    adr = "adr"
+    ldpsw = "ldpsw"
+    ldur = "ldur"
+    subs = "subs"
+    ldp = "ldp"
+    br = "br"
+    str = "str"
+    ldr = "ldr"
+    add = "add"
+    ret = "ret"
+    mov = "mov"
+    stur = "stur"
+    bl = "bl"
+    stp = "stp"
+    nop = "nop"
+    b = "b"
+    unknown = "<unknown>"
 
 class asm_inst:
-    def __init__(self, function : str = "", address : str = "", hexValue : str = "", instruction : str = "", params : list = []):
+    def __init__(self, function : str = "", address : str = "", hexValue : str = "", instruction : asm_itype = asm_itype.unknown, params : list = []):
         """Inititalize a new asm_instruction
 
         :param function:    Name of the function, defaults to ""
@@ -98,9 +120,17 @@ class asm_inst:
         self.function: str = function
         self.address: str = address
         self.hexValue: str = hexValue
-        self.instruction: str = instruction
+        self.instruction: asm_itype = instruction
         self.params: list[asm_param] = params
     
+    def set_instruction(self, instruction: str):
+        if instruction in asm_itype._value2member_map_:
+            self.instruction = asm_itype(instruction)
+        else:
+            self.instruction = asm_itype.unknown
+            print("Instruction {} not supported".format(instruction))
+
+
     def __str__(self) -> str:
         tmp = "{}\t".format(self.instruction)
         for i, p in enumerate(self.params):
@@ -189,7 +219,6 @@ class asm_param:
         #Unknown Types
         else:
             self.ptype = asm_ptype.unkown
-
 
 class asm_function:
     def __init__(self, name = ""):
@@ -336,19 +365,20 @@ def parse_asm(raw_asm: str) -> parsed_asm_list:
             execformat = format[0]
 
         if len(line) >= 17:
+            
             #Instruction
             if line[9] == ":":           #Instruction
-                asm = asm_inst()
+                asm: asm_inst = asm_inst()
                 asm.function = curFunction
                 asm.address = line[:9]
                 asm.hexValue = line[10:22].replace(" ", "")
                 params = line[22:].split("\t",1)[1]
                 if "\t" not in params:  #onlyInstruction
-                    asm.instruction = params
+                    asm.set_instruction(params)
                 else:
                     p = params.split("\t", 1)
-                    asm.instruction = p[0]
-                
+                    asm.set_instruction(p[0])
+
                     params = p[1].split(", ")
                     tmp = []
                     for i, p in enumerate(params):
@@ -360,7 +390,10 @@ def parse_asm(raw_asm: str) -> parsed_asm_list:
                             else:
                                 param = asm_param(p)
                                 tmp.append(param)
-
+                        else:
+                            if p[-1] == "]":
+                                param = asm_param(p[1:-1])
+                                tmp.append(param)
                     asm.params = tmp.copy()
 
                 asm_fnc.add_instruction(asm)

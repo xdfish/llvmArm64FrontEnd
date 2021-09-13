@@ -1,5 +1,7 @@
 from enum import Enum
 from pathlib import Path
+import copy as cp
+
 print(Path(__file__).stem)
 
 import inspect
@@ -14,7 +16,7 @@ from .parser import asm_dtype
 from .parser import asm_fnctype
 from .parser import asm_itype
 
-from .irtypes import ir_dtype, ir_fnc_var, ir_param, ir_var, irbb_alloca, irbb_store
+from .irtypes import ir_dtype, ir_fnc_var, ir_param, ir_var, ir_fnc_ret_var, ir_val, irbb_add, irbb_alloca, irbb_load, irbb_return, irbb_store, irbb_sub, irbb_mul
 from .irtypes import ir_file
 from .irtypes import ir_function
 
@@ -53,15 +55,84 @@ def convert_function(fnc: asm_function) -> ir_function:
         arg_list.append(ir_var(translation_dtype[ip.dtype], ip.value))
     fn.argument_list = arg_list
 
+    allocated = {}
+
+    def add_store(i: asm_inst):
+        t_dtype = translation_dtype[i.params[0].dtype]
+        t_align = translation_align[i.params[0].dtype]
+        t_target_var = ir_var(t_dtype, i.params[1].value)
+        t_source_var = None
+        if i.params[0].ptype is asm_ptype.number:
+            t_source_var = ir_val(t_dtype, i.params[0].value)
+        else:
+            t_source_var = ir_var(t_dtype, i.params[0].value)
+        
+        if t_target_var.str_rep() not in allocated:
+            fn.add_basic_block(irbb_alloca(t_target_var, t_align))
+            allocated[t_target_var.str_rep()] = None
+        fn.add_basic_block(irbb_store(t_source_var, t_target_var))
+
+    def add_load(i: asm_inst):
+        t_target_var = i.params[0].value
+        t_source_var = i.params[1].value
+        t_dtype = translation_dtype[i.params[0].dtype]
+        t_align = translation_align[i.params[0].dtype]
+        fn.add_basic_block(irbb_load(ir_var(t_dtype, t_target_var), ir_var(t_dtype, t_source_var), t_align))
+
+    def add_calc(i: asm_inst):
+        t_dtype = translation_dtype[i.params[0].dtype]
+        t_target_var = ir_var(t_dtype, i.params[0].value)
+        t_var1 = None
+        t_var2 = None
+        if i.params[1].ptype is asm_ptype.register:
+            t_var1 = ir_var(t_dtype, i.params[1].value)
+        elif i.params[1].ptype is asm_ptype.number:
+            t_var1 = ir_val(t_dtype, i.params[1].value)
+        if i.params[2].ptype is asm_ptype.register:
+            t_var2 = ir_var(t_dtype, i.params[2].value)
+        elif i.params[2].ptype is asm_ptype.number:
+            t_var2 = ir_val(t_dtype, i.params[2].value)
+        if i.instruction is asm_itype.add:
+            fn.add_basic_block(irbb_add(t_target_var, t_var1, t_var2, True, False))
+        elif i.instruction is asm_itype.sub:
+            fn.add_basic_block(irbb_sub(t_target_var, t_var1, t_var2, True, False))
+        else:
+            fn.add_basic_block(irbb_mul(t_target_var, t_var1, t_var2, True, False))
+
+    def add_return(i: asm_inst):
+        t_dtype = translation_dtype[fnc.return_parameter.dtype]
+        t_ret_var = ir_fnc_ret_var(t_dtype)
+        fn.add_basic_block(irbb_return(t_ret_var))
+
     for i in fnc.instructions:
-        if i.instruction is asm_itype.str:
-            t_source_var = i.params[0].value
-            t_target_var = i.params[1].value
-            t_dtype = translation_dtype[i.params[0].dtype]
-            t_align = translation_align[i.params[0].dtype]
-            fn.add_basic_block(irbb_alloca(ir_var(t_dtype, t_target_var), t_align))
-            fn.add_basic_block(irbb_store(ir_var(t_dtype, t_source_var), ir_var(t_dtype, t_target_var), t_align))
+        if i.instruction is asm_itype.str or i.instruction is asm_itype.stur:
+            add_store(i)
+
+        if i.instruction is asm_itype.ldr or i.instruction is asm_itype.ldur:   
+            add_load(i)
+
+        if i.instruction is asm_itype.add or i.instruction is asm_itype.sub or i.instruction is asm_itype.mul:
+            add_calc(i)
+        
+        if i.instruction is asm_itype.ret:
+            add_return(i)
+    
+        if i.instruction is asm_itype.mov:
+            if i.params[1].ptype is not asm_ptype.number:
+                add_load(i)
+            else:
+                tmp1 = cp.copy(i.params[0])
+                i.params[0] = cp.copy(i.params[1])
+                i.params[1] = tmp1
+                i.params[0].dtype = i.params[1].dtype #Set dtype to param 0 (cause params[0] is a constant => no dtype)
+                add_store(i)
+
+        if i.instruction is asm_itype.bl:
+            pass
+
     return fn
+
+
 
 def prepare_for_conversion(fnc: asm_function):
     """
@@ -77,6 +148,17 @@ def prepare_for_conversion(fnc: asm_function):
 
     for i in fnc.instructions:
         #Mark removeable Stackpointer operations
+        trig = False
+        for p in i.params:
+            if p.ptype.value == asm_ptype.sp_pointer.value:
+                if i not in removeable:
+                    removeable.append(i)
+                trig = True
+                continue
+        if trig:
+            continue
+
+
         if len(i.params) > 0:
             if i.params[0].ptype.value == asm_ptype.sp_pointer.value:
                 removeable.append(i)
@@ -84,7 +166,7 @@ def prepare_for_conversion(fnc: asm_function):
         
         #Rename Variables
         for p in i.params:
-            if p.ptype.value is asm_ptype.sp_address.value:
+            if p.ptype.value is asm_ptype.sp_address.value or p.ptype.value is asm_ptype.address.value:
                 if p.value not in variable_translation_table:
                     variable_translation_table[p.value] = "t{}".format(len(variable_translation_table))
                 p.value = variable_translation_table[p.value]

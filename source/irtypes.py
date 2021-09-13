@@ -593,6 +593,15 @@ class ir_ptr_var(ir_param):
         self.size: int = size
         self.ptr: str = ""
     
+class ir_fnc_ret_var(ir_var):
+    def __init__(self, ty: ir_dtype):
+        super().__init__(ty, "r0")
+    
+    def str_rep(self) -> str:
+        return super().str_rep()
+
+    def str_ty(self) -> str:
+        return super().str_ty()
 
 #Basic_Blocks (Protocoll)
 class ir_basic_block:
@@ -796,7 +805,10 @@ class ir_function:
         self.basic_blocks: list[ir_basic_block] = []
     
     def add_basic_block(self, basic_block: ir_basic_block) -> None:
-        self.basic_blocks.append(basic_block)
+        if type(basic_block) is irbb_alloca:
+            self.basic_blocks.insert(0, basic_block)
+        else:
+            self.basic_blocks.append(basic_block)
 
     def add_argument(self, arg: ir_var) -> None:
         self.argument_list.append(arg)
@@ -805,9 +817,9 @@ class ir_function:
         out = "define {}{}{}{}{}{} @{}(".format(opt(self.linkage), opt(self.preemption_specifier), opt(self.visability), opt(self.dll_storage_class), opt(self.cconv), self.return_var.str_ty(), self.function_name)
         for i, a in enumerate(self.argument_list):
             if i == 0:
-                out += "{} {}".format(a.ty.value, a.name)
+                out += "{} %{}".format(a.ty.value, a.name)
             else:
-                out += ", {} {}".format(a.ty.value, a.name)
+                out += ", {} %{}".format(a.ty.value, a.name)
         out += "){}".format(opt(self.unnamed_local))
         if self.addr_space:
             out += " addrspace({})".format(self.addr_space)
@@ -831,7 +843,6 @@ class ir_function:
         for bb in self.basic_blocks:
             out += "\t{}\n".format(bb.generate())
         return out + "}\n"
-
 #IR_FILE
 
 class ir_file_target_triple:
@@ -1193,7 +1204,7 @@ class irbb_add(ir_basic_block):
         self.op2_var: ir_param = op2_var
         self.nsw: bool = nsw
         self.nuw: bool = nuw
-        dtype_check([result_var, op1_var, op2_var], irgroup_dtype_integer,)
+        dtype_check([result_var, op1_var, op2_var], irgroup_dtype_integer)
     
     def generate(self):
         out = "{} = add ".format(self.result_var.str_rep())

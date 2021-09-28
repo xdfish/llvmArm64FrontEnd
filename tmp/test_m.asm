@@ -1,5 +1,5 @@
 
-tmp/prog:	file format mach-o arm64
+test_m:	file format mach-o arm64
 
 
 Disassembly of section __TEXT,__text:
@@ -21,6 +21,26 @@ Disassembly of section __TEXT,__text:
 100003e24: 00 11 00 11 	add	w0, w8, #4
 100003e28: ff 43 00 91 	add	sp, sp, #16
 100003e2c: c0 03 5f d6 	ret
+
+0000000100003e30 <_doMore>:
+100003e30: ff 83 00 d1 	sub	sp, sp, #32
+100003e34: e0 1f 00 b9 	str	w0, [sp, #28]
+100003e38: e1 1b 00 b9 	str	w1, [sp, #24]
+100003e3c: e2 17 00 b9 	str	w2, [sp, #20]
+100003e40: e3 13 00 b9 	str	w3, [sp, #16]
+100003e44: e8 1f 40 b9 	ldr	w8, [sp, #28]
+100003e48: e9 1b 40 b9 	ldr	w9, [sp, #24]
+100003e4c: 08 01 09 0b 	add	w8, w8, w9
+100003e50: e8 0f 00 b9 	str	w8, [sp, #12]
+100003e54: e8 17 40 b9 	ldr	w8, [sp, #20]
+100003e58: e9 13 40 b9 	ldr	w9, [sp, #16]
+100003e5c: 08 7d 09 1b 	mul	w8, w8, w9
+100003e60: e8 0b 00 b9 	str	w8, [sp, #8]
+100003e64: e8 0f 40 b9 	ldr	w8, [sp, #12]
+100003e68: e9 0b 40 b9 	ldr	w9, [sp, #8]
+100003e6c: 00 01 09 0b 	add	w0, w8, w9
+100003e70: ff 83 00 91 	add	sp, sp, #32
+100003e74: c0 03 5f d6 	ret
 
 0000000100003e78 <_main>:
 100003e78: ff c3 00 d1 	sub	sp, sp, #48
@@ -46,7 +66,7 @@ Disassembly of section __TEXT,__text:
 100003ec8: a8 83 5f b8 	ldur	w8, [x29, #-8]
 100003ecc: e0 03 08 aa 	mov	x0, x8
 100003ed0: ca ff ff 97 	bl	0x100003df8 <_add4>
-100003ed4: a0 43 1f b8 	stur	w0, [x29, #-12]
+100003ed4: a0 43 1f b8 	stur	w0,  
 100003ed8: a0 43 5f b8 	ldur	w0, [x29, #-12]
 100003edc: cf ff ff 97 	bl	0x100003e18 <_add4_>
 100003ee0: a0 43 1f b8 	stur	w0, [x29, #-12]

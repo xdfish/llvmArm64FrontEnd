@@ -1,0 +1,5 @@
+test_m:
+Contents of (__TEXT,__cstring) section
+0000000100003f80  Bitte geben Sie eine Zahl ein?\n
+0000000100003fa0  %d
+0000000100003fa3  %d\n

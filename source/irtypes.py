@@ -40,7 +40,6 @@ class visability_types(Enum):
     default = "default"
     hidden = "hidden"
     protected = "protected"
-
     # A symbol with internal or private linkage must have default visibility.
 
 class dll_storage_types(Enum):
@@ -286,10 +285,15 @@ class ir_dtype(Enum):
     """
     Pointer 128-bit floating-point value (two 64-bits)
     """
+    void = "void"
+    """
+    Void Type
+    """
     NONE = "NONE"
     """
     NONE
     """
+
 irgroup_dtype_integer = [ir_dtype.i16, ir_dtype.i32, ir_dtype.i64]
 irgroup_dtype_float = [ir_dtype.half, ir_dtype.bfloat, ir_dtype.float, ir_dtype.double, ir_dtype.fp128, ir_dtype.x86_fp80, ir_dtype.ppc_fp128]   
 def dtype_check(params: list, allowed_types: list = None, function: str = "") -> bool:
@@ -604,10 +608,10 @@ class ir_fnc_ret_var(ir_var):
         return super().str_ty()
 
 #Basic_Blocks (Protocoll)
-class ir_basic_block:
-    
+class ir_basic_block: 
     def conditions(self) -> bool:
-        #comming soon
+        #comming soon, checks all conditions of this basic_block 
+        # (for example values greater than 0)
         #raise NotImplementedError("you have to implement the conditions() function!")
         pass
 
@@ -773,7 +777,7 @@ class ir_global_metadata:
         self.id: str = id
 
     def str_rep(self):
-        return "!{}".format(self.name)
+        return "!{}".format(self.name)  
 
     def generate(self):
         out = "!{} = !{".format(self.name)
@@ -799,7 +803,7 @@ class ir_function:
         self.align: int = align
         self.gc: str = gc
         self.prefix: ir_val = prefix
-        self.prologue: None = prologue #NOT SUPPOTED FOR NOW
+        self.prologue: None = prologue          #NOT SUPPOTED FOR NOW
         self.personality: bool = personality
         self.meta_data: str = meta_data
         self.basic_blocks: list[ir_basic_block] = []
@@ -1903,40 +1907,48 @@ class irbb_llvm_va_copy(ir_basic_block):
 
 
 
-""" EXAMPLE
+"""
+# Filename
 file = ir_file("test_file.c")
-file.set_target_tripple(ir_file_target_triple(target_tripple_architecture_type.arm64, target_tripple_vendor_type.apple, target_tripple_operating_system_type.macosx11_0_0))
 
+#Target tripple
+tt = ir_file_target_triple( target_tripple_architecture_type.arm64, 
+                            target_tripple_vendor_type.apple, 
+                            target_tripple_operating_system_type.macosx11_0_0)
+file.set_target_tripple(tt)
+
+#DataLayout
 tl = ir_file_target_datalayout(True, 128)
 tl.add_mangling(target_datalayout_mangling_type.macho)
 tl.add_int_align(64, 64)
 tl.add_int_align(128, 128)
 tl.add_native_int_widths([32, 64])
 tl.add_stack_align(128)
-
 file.set_target_datalayout(tl)
 
-x = ir_function(ir_var(ir_dtype.i32), "testFunction")
-x.add_basic_block(irbb_alloca(ir_var(ir_dtype.i64, "t0"), 4))
-x.add_basic_block(irbb_alloca(ir_var(ir_dtype.float, "t1"), 4))
-x.add_basic_block(irbb_store(ir_var(ir_dtype.i32, "ab"), ir_var(ir_dtype.i64, "cd"), 4))
-x.add_basic_block(irbb_load(ir_var(ir_dtype.i32, "cc"), ir_var(ir_dtype.i32, "bb"), 4))
-x.add_basic_block(irbb_add(ir_var(ir_dtype.i32, "o"), ir_var(ir_dtype.i32, "l"), ir_var(ir_dtype.i32, "p"), True))
-x.add_basic_block(irbb_fadd(ir_var(ir_dtype.float, "j"), ir_var(ir_dtype.float, "n"), ir_val(ir_dtype.float, "4.0"), [fast_math_flags_type.nnan, fast_math_flags_type.afn]))
-x.add_basic_block(irbb_atomicrmw(ir_var(ir_dtype.i32, "old"), atomicrmw_op_type._add, ir_var(ir_dtype.i32, "k"), ir_val(ir_dtype.i32, "5"), atomic_memory_ordering_constraints_type.acquire, True, "test", 3))
-x.add_basic_block(irbb_call(ir_var(ir_dtype.i32, "2"), "add4", [ir_var(ir_dtype.i16, "a"), ir_var(ir_dtype.float, "b")], tail_type._musttail, [], calling_conventions_types.cc_10, [], 4, [], []))
-x.add_basic_block(irbb_return())
+#First Function
+fnc_a = ir_function(ir_var(ir_dtype.i32), "function1")
+fnc_a.add_basic_block(irbb_alloca(ir_var(ir_dtype.i64, "a"), 4))
+fnc_a.add_basic_block(irbb_store(ir_var(ir_dtype.i32, "b"), 
+                                 ir_var(ir_dtype.i64, "c"), 4))
+fnc_a.add_basic_block(irbb_load(ir_var(ir_dtype.i32, "d"), 
+                                ir_var(ir_dtype.i32, "e"), 4))
+fnc_a.add_basic_block(irbb_add(ir_var(ir_dtype.i32, "a"), 
+                               ir_var(ir_dtype.i32, "b"), 
+                               ir_var(ir_dtype.i32, "c"), True))
+fnc_a.add_basic_block(irbb_return(ir_var(ir_dtype.i32, "a")))
+file.add_glob_fnc(fnc_a)
 
-y = ir_function(ir_var(ir_dtype.i32), "testFunction")
-y.add_basic_block(irbb_alloca(ir_var(ir_dtype.i64, "t0"), 4))
-y.add_basic_block(irbb_alloca(ir_var(ir_dtype.float, "t1"), 4))
-y.add_basic_block(irbb_load(ir_var(ir_dtype.i32, "cc"), ir_var(ir_dtype.i32, "bb"), 4))
-y.add_basic_block(irbb_atomicrmw(ir_var(ir_dtype.i32, "old"), atomicrmw_op_type._add, ir_var(ir_dtype.i32, "k"), ir_val(ir_dtype.i32, "5"), atomic_memory_ordering_constraints_type.acquire, True, "test", 3))
-y.add_basic_block(irbb_call(ir_var(ir_dtype.i32, "2"), "add4", [ir_var(ir_dtype.i16, "a"), ir_var(ir_dtype.float, "b")], tail_type._musttail, [], calling_conventions_types.cc_10, [], 4, [], []))
-y.add_basic_block(irbb_return())
+#Second Function
+fnc_b = ir_function(ir_var(ir_dtype.void), "function2")
+fnc_b.add_argument(ir_var(ir_dtype.double, "x"))
+fnc_b.add_argument(ir_var(ir_dtype.i64, "y"))
+fnc_b.add_basic_block(irbb_return())
+file.add_glob_fnc(fnc_b)
 
-file.add_glob_fnc(x)
-file.add_glob_fnc(y)
+#Generate function1 only
+print(fnc_a.generate())
 
+#Generate whole File
 print(file.generate())
 """

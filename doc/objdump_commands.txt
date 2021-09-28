@@ -1,0 +1,31 @@
+objdump -D test_m --macho --bind --dylibs-used --exports-trie --full-leading-addr --indirect-symbols --lazy-bind --no-symbolic-operands --private-header --full-contents --syms
+    
+    1. Disasmble Text Section mit voller Adresse (Ohne kommentare):
+        -> objdump -D test_m --macho --full-leading-addr --no-symbolic-operands
+
+    2. Demangle Whole File to get....
+    2a: Used Libraries
+        -> objdump -C test_m --macho --bind
+    2b: Paths to dynamic libraries and compatibility
+        -> objdump -C test_m --macho --dylibs-used
+    2c: Exported Functions (list of all functions)
+        -> objdump -C test_m --macho --exports-trie
+    2d: Symbol Table (librarie functions and their addresses)
+        -> objdump -C test_m --macho --indirect-symbols
+    2e: Symbol pointer (pointer to imported functions)
+        -> objdump -C test_m --macho --lazy-bind
+    2f: Header (CPUTYPE, Filetype, flags...)
+        -> objdump -C test_m --macho --private-header
+    2g: Full Content anschau (nicht wirklich ntzlich)
+        -> objdump -D test_m --macho --full-contents
+    2h: Nur __cstring section ausgeben (direkt schon konvertiert!)
+        -> objdump -C test_m --macho --section="__cstring"
+    2i: Symbol-Table ausgeben mit adresse. Leider keine für Funktionen aus dynamischen Libraries
+        -> objdump -C test_m --macho --syms
+
+
+
+1: objdump -D test_m --macho --full-leading-addr --no-symbolic-operands
+2: objdump -C test_m --macho --private-header
+3: objdump -C test_m --macho --section="__cstring"
+4: objdump -C test_m --macho --indirect-symbols

@@ -2,8 +2,6 @@ from enum import Enum
 from pathlib import Path
 import copy as cp
 
-print(Path(__file__).stem)
-
 import inspect
 
 from .parser import asm_inst
@@ -16,7 +14,7 @@ from .parser import asm_dtype
 from .parser import asm_fnctype
 from .parser import asm_itype
 
-from .irtypes import ir_dtype, ir_fnc_var, ir_param, ir_var, ir_fnc_ret_var, ir_val, irbb_add, irbb_alloca, irbb_load, irbb_return, irbb_store, irbb_sub, irbb_mul
+from .irtypes import ir_dtype, ir_fnc_var, ir_param, ir_var, ir_fnc_ret_var, ir_val, irbb_add, irbb_alloca, irbb_global_declare_variable, irbb_load, irbb_return, irbb_store, irbb_sub, irbb_mul
 from .irtypes import ir_file
 from .irtypes import ir_function
 
@@ -45,11 +43,16 @@ translation_align = {
 }
 
 def convert_function(fnc: asm_function) -> ir_function:
+    #convert returntype
     ret_dtype: ir_fnc_var = ir_fnc_var(translation_dtype[fnc.return_parameter.dtype])
+    
+    #set function name
     function_name: str = fnc.name
 
+    #generate function
     fn = ir_function(ret_dtype, function_name)
 
+    #comvert argumentlist
     arg_list: list[ir_var] = []
     for i, ip in enumerate(fnc.input_parameter):
         arg_list.append(ir_var(translation_dtype[ip.dtype], ip.value))
@@ -57,6 +60,7 @@ def convert_function(fnc: asm_function) -> ir_function:
 
     allocated = {}
 
+    #TRANSLATION FOR ADD INSTRUCTION
     def add_store(i: asm_inst):
         t_dtype = translation_dtype[i.params[0].dtype]
         t_align = translation_align[i.params[0].dtype]
@@ -72,6 +76,7 @@ def convert_function(fnc: asm_function) -> ir_function:
             allocated[t_target_var.str_rep()] = None
         fn.add_basic_block(irbb_store(t_source_var, t_target_var))
 
+    #TRANSLATION FOR ADD INSTRUCTION
     def add_load(i: asm_inst):
         t_target_var = i.params[0].value
         t_source_var = i.params[1].value
@@ -79,6 +84,7 @@ def convert_function(fnc: asm_function) -> ir_function:
         t_align = translation_align[i.params[0].dtype]
         fn.add_basic_block(irbb_load(ir_var(t_dtype, t_target_var), ir_var(t_dtype, t_source_var), t_align))
 
+    #TRANSLATION FOR CALC INSTRUCTION
     def add_calc(i: asm_inst):
         t_dtype = translation_dtype[i.params[0].dtype]
         t_target_var = ir_var(t_dtype, i.params[0].value)
@@ -96,13 +102,18 @@ def convert_function(fnc: asm_function) -> ir_function:
             fn.add_basic_block(irbb_add(t_target_var, t_var1, t_var2, True, False))
         elif i.instruction is asm_itype.sub:
             fn.add_basic_block(irbb_sub(t_target_var, t_var1, t_var2, True, False))
+        elif i.instruction is asm_itype.sdiv or i.instrction is asm_itype.udiv:
+            fn.add_basic_block(irbb_sub(t_target_var, t_var1, t_var2, True, False))
         else:
             fn.add_basic_block(irbb_mul(t_target_var, t_var1, t_var2, True, False))
 
+    #TRANSLATION FOR RETURN INSTRUCTION
     def add_return(i: asm_inst):
         t_dtype = translation_dtype[fnc.return_parameter.dtype]
         t_ret_var = ir_fnc_ret_var(t_dtype)
         fn.add_basic_block(irbb_return(t_ret_var))
+
+
 
     for i in fnc.instructions:
         if i.instruction is asm_itype.str or i.instruction is asm_itype.stur:
@@ -116,7 +127,8 @@ def convert_function(fnc: asm_function) -> ir_function:
         
         if i.instruction is asm_itype.ret:
             add_return(i)
-    
+
+        #There is no equivalent for a move condition. But it will be the same functionality as load/sotre
         if i.instruction is asm_itype.mov:
             if i.params[1].ptype is not asm_ptype.number:
                 add_load(i)
@@ -131,8 +143,6 @@ def convert_function(fnc: asm_function) -> ir_function:
             pass
 
     return fn
-
-
 
 def prepare_for_conversion(fnc: asm_function):
     """
@@ -182,6 +192,7 @@ def prepare_for_conversion(fnc: asm_function):
     
     return fnc
 
+#OUTDATED
 def analyze_str_constants(asm_list: parsed_asm_list) -> list:
     """
     Analyzes the __cstring section of the parsed asm list and returns the string constant in it
@@ -200,7 +211,7 @@ def analyze_str_constants(asm_list: parsed_asm_list) -> list:
         #decode bytearray to str with: ba_var.decode()
         return tmp
 
-def analyze_asm(asm_list: parsed_asm_list):
+def analyze_asm(asm_list: parsed_asm_list) -> ir_file:
     if not asm_list:
         print("Converter Error - No parsed asm_list available")
         return
@@ -209,7 +220,8 @@ def analyze_asm(asm_list: parsed_asm_list):
     
     file: ir_file = ir_file(asm_list.filename)
 
-    global_str_const: list[bytearray] = analyze_str_constants(asm_list)
+    for const_str in asm_list.cstring_table:
+        pass ############ <------<------<-----<------<------<-
     
     for fnc in asm_list.functions:
         if fnc.fnc_type.value == "USER_FNC":
@@ -218,10 +230,8 @@ def analyze_asm(asm_list: parsed_asm_list):
             file.add_glob_fnc(converted_fnc)
     
     print(file.generate())
+    return file
         
-
-
-
 def show_details_prepare(function_name, removeable_count, translation):
     print("  Preparation Overview for {}".format(function_name))
     print("\t|-> Del. Instructions:\t{}".format(removeable_count))

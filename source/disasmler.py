@@ -60,7 +60,16 @@ def decompile(filename, export):
 
 ##LIVE <-
 class disasembled_raw():
+    """represents the disasembled content for a Mach-O file an the needen methods to feth and process them.
+    """
     def __init__(self, source_filename: str = None, export_files: bool = False) -> None:
+        """creates an instance of disambled_raw
+
+        :param source_filename: name of the file to disassemble, defaults to None
+        :type source_filename: str, optional
+        :param export_files: trigger output (always true at the moment), defaults to False
+        :type export_files: bool, optional
+        """
         self.filename: str = source_filename
         self.private_header: str = None
         self.text_section: str = None
@@ -74,6 +83,8 @@ class disasembled_raw():
 
 
     def get_text_section(self):
+        """Disassembles the text section of a Mach-O file
+        """
         if self.valid:
             subp_command = ["objdump", "-D", self.filename, "--macho", "--full-leading-addr", "--no-symbolic-operands"]
             p = subprocess.Popen(subp_command, stdout=subprocess.PIPE)
@@ -88,6 +99,8 @@ class disasembled_raw():
         
 
     def get_private_header(self):
+        """Disassembles the text private header of a Mach-O file
+        """
         if self.valid:
             subp_command = ["objdump", "-C", self.filename, "--macho", "--private-header"]
             p = subprocess.Popen(subp_command, stdout=subprocess.PIPE)
@@ -101,6 +114,8 @@ class disasembled_raw():
             log(os.path.basename(__file__), "-> private_header (SKIPPED)")
 
     def get_cstring_section(self):
+        """Disassembles the cstring section of a Mach-O file
+        """
         if self.valid:
             subp_command = ["objdump", "-C", self.filename, "--macho", "--section=__cstring"]
             p = subprocess.Popen(subp_command, stdout=subprocess.PIPE)
@@ -114,6 +129,8 @@ class disasembled_raw():
             log(os.path.basename(__file__), "-> cstring_section (SKIPPED")
 
     def get_symbol_table(self):
+        """Disassembles the symbol table of a Mach-O file
+        """
         if self.valid:
             subp_command = ["objdump", "-C", self.filename, "--macho", "--indirect-symbols"]
             p = subprocess.Popen(subp_command, stdout=subprocess.PIPE)
@@ -127,6 +144,11 @@ class disasembled_raw():
             log(os.path.basename(__file__), "-> symbol_table (SKIPPED)")
 
     def disasemble(self):
+        """triggers the disassembling process of the given file
+
+        :return: disasembled content of the file
+        :rtype: disasembled_raw
+        """
         if self.valid:
             log(os.path.basename(__file__), "Disasembling file: {}".format(self.filename))
             self.get_text_section()
@@ -143,6 +165,17 @@ class disasembled_raw():
 
 #Helpfunctions
 def export_file(filename: str, content: str, filename_suffix: str = ""):
+    """Allows to export a file. not in use at the moment
+
+    :param filename: filename (and path)
+    :type filename: str
+    :param content: content to export
+    :type content: str
+    :param filename_suffix: file suffix, defaults to ""
+    :type filename_suffix: str, optional
+    :return: None
+    :rtype: None
+    """
     f = open("../tmp/{}{}.asm".format(filename.split("/")[-1], filename_suffix), "w")
     f.write(content)
     f.close()

@@ -43,6 +43,13 @@ translation_align = {
 }
 
 def convert_function(fnc: asm_function) -> ir_function:
+    """converts an assembler function into an llvm ir function
+
+    :param fnc: funtion to convert
+    :type fnc: asm_function
+    :return: converted function
+    :rtype: ir_function
+    """
     #convert returntype
     ret_dtype: ir_fnc_var = ir_fnc_var(translation_dtype[fnc.return_parameter.dtype])
     
@@ -62,6 +69,11 @@ def convert_function(fnc: asm_function) -> ir_function:
 
     #TRANSLATION FOR ADD INSTRUCTION
     def add_store(i: asm_inst):
+        """adds an llvm ir store instruction to the ir file
+
+        :param i: parsed instruction
+        :type i: asm_inst
+        """
         t_dtype = translation_dtype[i.params[0].dtype]
         t_align = translation_align[i.params[0].dtype]
         t_target_var = ir_var(t_dtype, i.params[1].value)
@@ -78,6 +90,11 @@ def convert_function(fnc: asm_function) -> ir_function:
 
     #TRANSLATION FOR ADD INSTRUCTION
     def add_load(i: asm_inst):
+        """adds an llvm ir load instruction to the ir file
+
+        :param i: parsed instruction
+        :type i: asm_inst
+        """
         t_target_var = i.params[0].value
         t_source_var = i.params[1].value
         t_dtype = translation_dtype[i.params[0].dtype]
@@ -86,6 +103,11 @@ def convert_function(fnc: asm_function) -> ir_function:
 
     #TRANSLATION FOR CALC INSTRUCTION
     def add_calc(i: asm_inst):
+        """adds an llvm ir calculation (sub, add, mul, sdiv, udiv) instruction to the ir file
+
+        :param i: parsed instruction
+        :type i: asm_inst
+        """
         t_dtype = translation_dtype[i.params[0].dtype]
         t_target_var = ir_var(t_dtype, i.params[0].value)
         t_var1 = None
@@ -109,6 +131,11 @@ def convert_function(fnc: asm_function) -> ir_function:
 
     #TRANSLATION FOR RETURN INSTRUCTION
     def add_return(i: asm_inst):
+        """adds an llvm ir return instruction to the ir file
+
+        :param i: parsed instruction
+        :type i: asm_inst
+        """
         t_dtype = translation_dtype[fnc.return_parameter.dtype]
         t_ret_var = ir_fnc_ret_var(t_dtype)
         fn.add_basic_block(irbb_return(t_ret_var))
@@ -155,7 +182,7 @@ def prepare_for_conversion(fnc: asm_function):
 
     variable_translation_table = {}
     removeable: list[asm_inst] = []
-
+    
     for i in fnc.instructions:
         #Mark removeable Stackpointer operations
         trig = False
@@ -195,6 +222,7 @@ def prepare_for_conversion(fnc: asm_function):
 #OUTDATED
 def analyze_str_constants(asm_list: parsed_asm_list) -> list:
     """
+    DEPRECATED
     Analyzes the __cstring section of the parsed asm list and returns the string constant in it
 
     :param asm_list: parsed asm list, with the strong section in it
@@ -212,6 +240,13 @@ def analyze_str_constants(asm_list: parsed_asm_list) -> list:
         return tmp
 
 def analyze_asm(asm_list: parsed_asm_list) -> ir_file:
+    """analyzes the given, parsedn asm data
+
+    :param asm_list: [dparsed asm data
+    :type asm_list: parsed_asm_list
+    :return: llvm ir file
+    :rtype: ir_file
+    """
     if not asm_list:
         print("Converter Error - No parsed asm_list available")
         return
@@ -221,7 +256,7 @@ def analyze_asm(asm_list: parsed_asm_list) -> ir_file:
     file: ir_file = ir_file(asm_list.filename)
 
     for const_str in asm_list.cstring_table:
-        pass ############ <------<------<-----<------<------<-
+        pass 
     
     for fnc in asm_list.functions:
         if fnc.fnc_type.value == "USER_FNC":
@@ -232,7 +267,16 @@ def analyze_asm(asm_list: parsed_asm_list) -> ir_file:
     print(file.generate())
     return file
         
-def show_details_prepare(function_name, removeable_count, translation):
+def show_details_prepare(function_name: str, removeable_count: int, translation: dict):
+    """Prints the prepartion information
+
+    :param function_name: functionname
+    :type function_name: str
+    :param removeable_count: amount of translated variables
+    :type removeable_count: int
+    :param translation: translation table (as a dict)
+    :type translation: dict
+    """
     print("  Preparation Overview for {}".format(function_name))
     print("\t|-> Del. Instructions:\t{}".format(removeable_count))
     print("\t'-> Renamed variables:\t{}\n".format(len(translation)))

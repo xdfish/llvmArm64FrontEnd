@@ -4,8 +4,11 @@ from source.irtypes import preemption_specifier_types
 from source.irtypes import visability_types
 from source.irtypes import dll_storage_types
 
+# THIS FILE IS DEPRECATED AND WAS MERGED WITH IRTYPES, WHICH IS THE CURRENT IMPLEMENTATION!!!!
 
 class ir_file:
+    """DEPRECATED
+    """
     def __init__(self, filename):
         self.source_filename = "{}.ll".format(filename)
         self.target_datalayout = "e-m:o-i64:64-i128:128-n32:64-S128"
@@ -61,6 +64,9 @@ class ir_file:
 
 # Input Parameter
 class inp_param:
+    """DEPRECATED
+    USE THE PENDANT IN IRTYPES INSTEAD
+    """
     def __init__(self, dtype, size, name):
         self.dtype = dtype
         self.size = int(size)
@@ -71,6 +77,9 @@ class inp_param:
 
 #Instruction - Allocation 
 class inst_allocation:
+    """DEPRECATED
+    USE THE PENDANT IN IRTYPES INSTEAD
+    """
     def __init__(self, var_name, dtype, size):
         self. var_name = var_name
         self.dtype = dtype
@@ -82,6 +91,9 @@ class inst_allocation:
 
 #Instruction Store
 class inst_store:
+    """DEPRECATED
+    USE THE PENDANT IN IRTYPES INSTEAD
+    """
     def __init__(self, source_dtype, source_size, source_name, target_dtype, target_size, target_name):
         self.source_dtype = source_dtype
         self.source_size = int(source_size)
@@ -95,6 +107,9 @@ class inst_store:
         return "store {}{} {}, {}{}* {}, align {}\n".format(self.source_dtype, self.source_size, self.source_name, self.target_dtype, self.target_size, self.target_name, self.align)
 
 class inst_load:
+    """DEPRECATED
+    USE THE PENDANT IN IRTYPES INSTEAD
+    """
     def __init__(self, target_name, load_dtype, load_size, source_name, source_dtype, source_size):
         self.target_name = target_name
         self.load_dtype = load_dtype
@@ -108,6 +123,9 @@ class inst_load:
         return "{} = load {}{}, {}{}* {}, align {}\n".format(self.target_name, self.load_dtype, self.load_size, self.source_dtype, self.source_size, self.source_name, self.align)
 
 class inst_add:
+    """DEPRECATED
+    USE THE PENDANT IN IRTYPES INSTEAD
+    """
     def __init__(self, target, dtype, size, op1, op2, nsw):
         self.target = target
         self.dtype = dtype
@@ -122,6 +140,9 @@ class inst_add:
         return "{} = add {}{}{} {}, {}\n".format(self.target, self.nsw, self.dtype, self.size, self.op1, self.op2)
 
 class inst_sub:
+    """DEPRECATED
+    USE THE PENDANT IN IRTYPES INSTEAD
+    """
     def __init__(self, target, dtype, size, op1, op2, nsw):
         self.target = target
         self.dtype = dtype
@@ -136,6 +157,9 @@ class inst_sub:
         return "{} = sub {}{}{} {}, {}\n".format(self.target, self.nsw, self.dtype, self.size, self.op1, self.op2)
 
 class inst_mul:
+    """DEPRECATED
+    USE THE PENDANT IN IRTYPES INSTEAD
+    """
     def __init__(self, target, dtype, size, op1, op2, nsw):
         self.target = target
         self.dtype = dtype
@@ -151,6 +175,9 @@ class inst_mul:
         return "{} = mul {}{}{} {}, {}\n".format(self.target, self.nsw, self.dtype, self.size, self.op1, self.op2)
 
 class inst_call:
+    """DEPRECATED
+    USE THE PENDANT IN IRTYPES INSTEAD
+    """
     def __init__(self, target, dtype, size, f_name):
         self.target = target
         self.dtype = dtype
@@ -172,6 +199,9 @@ class inst_call:
         return out
 
 class inst_return:
+    """DEPRECATED
+    USE THE PENDANT IN IRTYPES INSTEAD
+    """
     def __init__(self, dtype, size, value):
         self.dtype = dtype
         self.size = int(size)
@@ -181,6 +211,9 @@ class inst_return:
         return "ret {}{} {}\n".format(self.dtype, self.size, self.value)
 
 class ir_function:
+    """DEPRECATED
+    USE THE PENDANT IN IRTYPES INSTEAD
+    """
     def __init__(self, return_dtype, return_size, name, attribute):
         self.return_dtype = return_dtype
         self.return_size = int(return_size)

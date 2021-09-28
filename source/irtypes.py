@@ -296,6 +296,7 @@ class ir_dtype(Enum):
 
 irgroup_dtype_integer = [ir_dtype.i16, ir_dtype.i32, ir_dtype.i64]
 irgroup_dtype_float = [ir_dtype.half, ir_dtype.bfloat, ir_dtype.float, ir_dtype.double, ir_dtype.fp128, ir_dtype.x86_fp80, ir_dtype.ppc_fp128]   
+
 def dtype_check(params: list, allowed_types: list = None, function: str = "") -> bool:
     """
     Checks if all params are of the same dtype, and if they are allowed
@@ -336,11 +337,13 @@ class unnamed_local_type(Enum):
     local_unnamed_addr = "local_unnamed_addr"
 
 class thread_local_type(Enum):
+    """LLVM thread local types"""
     localdynamic = "localdynamic"
     initialexec = "initialexec"
     localexec = "localexec"
 
 class fast_math_flags_type(Enum):
+    """LLVM fast math flag types"""
     nnan = "nnan"
     ninf = "ninf"
     nsz = "nsz"
@@ -351,6 +354,7 @@ class fast_math_flags_type(Enum):
     fast = "fast"
 
 class atomic_memory_ordering_constraints_type(Enum):
+    """LLVM atomic memory orderungs constraints types"""
     unordered = "unordered"
     monotonic = "monotonic"
     acquire = "acquire"
@@ -359,6 +363,7 @@ class atomic_memory_ordering_constraints_type(Enum):
     seq_cst = "seq_cst"
 
 class atomicrmw_op_type(Enum):
+    """LLVM atomicrmw operation types"""
     _xchg = "xchg"
     _add = "add"
     _sub = "sub"
@@ -374,6 +379,7 @@ class atomicrmw_op_type(Enum):
     _fsub = "fsub"
 
 class compare_type(Enum):
+    """LLVM compare types"""
     _eq = "eq"          #equal
     _ne = "ne"          #not equal
     _ugt = "ugt"        #unsigned greater than
@@ -386,11 +392,13 @@ class compare_type(Enum):
     _sle = "sle"        #signed less or equal
 
 class tail_type(Enum):
+    """LLVM tail types"""
     _tail = "tail"
     _musttail = "musttail"
     _notail = "notail"
 
 class target_datalayout_mangling_type(Enum):
+    """LLVM target datalyout mangling types"""
     elf = "e"
     """ELF mangling"""
     mips = "m"
@@ -405,6 +413,7 @@ class target_datalayout_mangling_type(Enum):
     """XCOFF mangling"""
 
 class target_datalayout_addr_space:
+    """LLVM target datalayout addr space"""
     def __init__(self, values: list) -> None:
         self.values: list[str] = values
 
@@ -418,6 +427,7 @@ class target_datalayout_addr_space:
         return out
 
 class target_datalayout_ptr_align:
+    """LLVM target datalayout pointer align"""
     def __init__(self, size: int, abi: int, pref: int = None, idx: int = None) -> None:
         self.size: int = size
         self.abi: int = abi
@@ -433,6 +443,7 @@ class target_datalayout_ptr_align:
         return out
 
 class target_datalayout_int_align:
+    """LLVM target datalayout integer align"""
     def __init__(self, size: int, abi: int, pref: int = None) -> None:
         self.size: int = size
         self.abi: int = abi
@@ -445,6 +456,7 @@ class target_datalayout_int_align:
         return out
 
 class target_datalayout_vector_align:
+    """LLVM target datalayout vector align"""
     def __init__(self, size: int, abi: int, pref: int = None) -> None:
         self.size: int = size
         self.abi: int = abi
@@ -457,6 +469,7 @@ class target_datalayout_vector_align:
         return out
 
 class target_datalayout_float_align:
+    """LLVM target datalayout float align"""
     def __init__(self, size: int, abi: int, pref: int = None) -> None:
         self.size: int = size
         self.abi: int = abi
@@ -469,6 +482,7 @@ class target_datalayout_float_align:
         return out
 
 class target_datalayout_obj_align:
+    """LLVM target datalayout object align"""
     def __init__(self, abi: int, pref: int = None) -> None:
         self.abi: int = abi
         self.pref: int = pref
@@ -480,6 +494,7 @@ class target_datalayout_obj_align:
         return out
 
 class target_datalayout_fnc_align:
+    """LLVM target datalayout function align"""
     def __init__(self, type: str, abi: int) -> None:
         self.type = type
         self.abi: int = abi
@@ -489,6 +504,7 @@ class target_datalayout_fnc_align:
         return out
 
 class target_datalayout_native_i_width:
+    """LLVM target datalaylout native integer width"""
     def __init__(self, sizes: list) -> None:
         self.sizes: list[int] = sizes
     
@@ -502,13 +518,16 @@ class target_datalayout_native_i_width:
         return out
 
 class target_tripple_architecture_type(Enum):
+    """LLVM target tripple architecture"""
     x86_64 = "x86_64"
     arm64 = "arm64"
 
 class target_tripple_vendor_type(Enum):
+    """LLVM target tripple vendor types"""
     apple = "apple"
 
 class target_tripple_operating_system_type(Enum):
+    """LLVM target tripple operating types (only supported ones for now)"""
     macosx10_15_7 = "macosx10.15.7"
     macosx11_0_0 = "macosx11.0.0"
 
@@ -544,81 +563,184 @@ def opt(optional_variable: Enum) -> str:
 
 #IR_PARAMETER (Variables and fix values)
 class ir_param:
+    """abstract class for ir_val, ir_var and ir_fnc_var. Later also for ir_ptr
+    """
     def str_rep(self) -> str:
+        """returns the string representation of the value
+
+        :raises NotImplementedError: this function have to be implemented
+        :return: string representation
+        :rtype: str
+        """
         raise NotImplementedError("you have to implement that function!")
 
     def str_ty(self) -> str:
+        """returns the representation of the dataype
+
+        :raises NotImplementedError: [This function have to be implemented
+        :return: datatype representation
+        :rtype: str
+        """
         raise NotImplementedError("you have to implement that function!")    
 
 class ir_var(ir_param):
+    """Represents an LLVM IR Register (variable)
+    """
     def __init__(self, ty: ir_dtype, name: str = "", param_attribs: list = []) -> None:
+        """Initalizes the registe
+
+        :param ty: datatype of the register
+        :type ty: ir_dtype
+        :param name: name of the register, defaults to ""
+        :type name: str, optional
+        :param param_attribs: parameter arguments, defaults to []
+        :type param_attribs: list, optional
+        """
         super().__init__()
         self.ty: ir_dtype = ty
         self.name: str = name
         self.param_attribs: list[parameter_attribute_types] = param_attribs
 
     def str_rep(self) -> str:
+        """
+        see ir_param for informations!
+        """
         return "%{}".format(self.name)
     
     def str_ty(self) -> str:
+        """
+        see ir_param for informations!
+        """
         return self.ty.value
 
 class ir_val(ir_param):
+    """Represents an LLVM IR fix value (numbers)
+    """
     def __init__(self, ty: ir_dtype, value: any) -> None:
+        """Initializes an IR fic value (numbers)
+
+        :param ty: Datatype of teh value
+        :type ty: ir_dtype
+        :param value: value
+        :type value: any
+        """
         super().__init__()
         self.ty: ir_dtype = ty
         self.value: any = value
     
     def str_rep(self) -> str:
+        """
+        see ir_param for informations!
+        """
         return "{}".format(self.value)
     
     def str_ty(self) -> str:
+        """
+        see ir_param for informations!
+        """
         return self.ty.value
 
 class ir_fnc_var(ir_param):
+    """Represents an LLVM IR Register based on the needs for function declaration
+    """
     def __init__(self, ty: ir_dtype, param_attribs: list = []) -> None:
+        """Initalizes a register based on the needs for use as function return type
+
+        :param ty: datatxpe of the register
+        :type ty: ir_dtype
+        :param param_attribs: parameter attributes, defaults to []
+        :type param_attribs: list, optional
+        """
         super().__init__()
         self.ty: ir_dtype = ty
         self.param_attribs: list[parameter_attribute_types] = param_attribs
 
     def str_rep(self) -> str:
+        """
+        see ir_param for informations!
+        """
         out = ""
         for a in self.param_attribs:
             out += "{} ".format(a.value)
         return out + self.ty.value
 
     def str_ty(self) -> str:
+        """
+        see ir_param for informations!
+        """
         return self.ty.value
 
 class ir_ptr_var(ir_param):
+    """Represents a pointer to a register
+    """
     def __init__(self, ty: ir_dtype, size: int, ptr: str) -> None:
+        """Initializes the ptr
+
+        :param ty: datatype of the pointed value
+        :type ty: ir_dtype
+        :param size: size of the pointer
+        :type size: int
+        :param ptr: pointed value
+        :type ptr: str
+        """
         super().__init__()
         self.ty: ir_dtype = ty
         self.size: int = size
         self.ptr: str = ""
     
 class ir_fnc_ret_var(ir_var):
+    """return variable for functions
+    """
     def __init__(self, ty: ir_dtype):
+        """Initalizies the function variable
+
+        :param ty: datatype
+        :type ty: ir_dtype
+        """
         super().__init__(ty, "r0")
     
     def str_rep(self) -> str:
+        """
+        see ir_param for informations!
+        """
         return super().str_rep()
 
     def str_ty(self) -> str:
+        """
+        see ir_param for informations!
+        """
         return super().str_ty()
 
 #Basic_Blocks (Protocoll)
 class ir_basic_block: 
+    """Represents the abstract function for all IR Basic Block classes
+    """
     def conditions(self) -> bool:
+        """chechs the provided conditions (se llvm manual for the specific instruction)
+
+        :return: if all conditions true => true, else False
+        :rtype: bool
+        """
         #comming soon, checks all conditions of this basic_block 
         # (for example values greater than 0)
         #raise NotImplementedError("you have to implement the conditions() function!")
         pass
 
-    def generate(self):
+    def generate(self) -> str:
+        """generates the valid IR expressin 
+
+        :raises NotImplementedError: This method have to be implemented
+        :return: valid IR expression
+        :rtype: str
+        """
         raise NotImplementedError("you have to implement the generate() function!")
 
     def not_supported(self, bb):
+        """can be used for declared, but not implemented IR Instructions
+
+        :param bb: the basic block it self
+        :type bb: (not specific)
+        """
         print("ERROR - This instruction is not supported for now: {}".format(bb.__class__.__name__))
 
 
@@ -668,6 +790,11 @@ class irbb_global_declare_variable:
         return "{}\n".format(out)
 
 class irbb_global_declare_function:
+    """
+    Class for LLVM global function declaration
+    None optional values have to be set in the init call!
+    For more Informations to global variables in LLVM-IR see:  #https://llvm.org/docs/LangRef.html#functions
+    """
     def __init__(self, return_var: ir_fnc_var, function_name: str, linkage:linkage_types = None, visability : visability_types = None, dll_storage_class: dll_storage_types = None, cconv: calling_conventions_types = None, argument_list: list = [], unnamed_local: unnamed_local_type = None, addr_space: int = None, align: int = None, gc: str = None, prefix: ir_val = None, prologue: None = None):
         self.linkage:linkage_types = linkage
         self.visability : visability_types = visability
@@ -702,60 +829,122 @@ class irbb_global_declare_function:
         return out
 
 class ir_global_attribs:
+    """abstract class for global attributes
+    """
     def add_attribute(self):
+        """adds an attribute
+
+        :raises NotImplementedError: This method have to be implemented
+        """
         raise NotImplementedError("you have to implement the generate() function!")
 
     def add_attributes(self):
+        """adds multiple attributes
+
+        :raises NotImplementedError: [description]
+        """
         raise NotImplementedError("you have to implement the generate() function!")
     
     def rename(self):
+        """renames the attribute
+
+        :raises NotImplementedError: [description]
+        """
         raise NotImplementedError("you have to implement the generate() function!")
 
     def generate(self):
         raise NotImplementedError("you have to implement the generate() function!")
 
 class ir_global_attribs_function(ir_global_attribs):
+    """
+    Class for LLVM global attributes
+    None optional values have to be set in the init call!
+    For more Informations to global variables in LLVM-IR see:  #https://llvm.org/docs/LangRef.html#global-attributes
+    """
     def __init__(self, name: str, attribs: list) -> None:
+        """Initalizie the global attribute
+
+        :param name: name of the attribute
+        :type name: str
+        :param attribs: attributes
+        :type attribs: list
+        """
         self.name: str = name
         self.attribs: list[function_attribute_types] = attribs
 
     def add_attribute(self, attribute: function_attribute_types):
+        """see irbb_global_attribs for more informations
+        """
         self.add_attributes([attribute])
     
     def add_attributes(self, attributes: list):
+        """see irbb_global_attribs for more informations
+        """
         self.attribs = list(set(self.attribs + attributes))
 
     def rename(self, name: str):
+        """see irbb_global_attribs for more informations
+        """
         self.name: str = name
 
     def generate(self):
+        """see irbb_global_attribs for more informations
+        """
         out = "attributes #{} = {".format(self.name)
         for a in self.attribs:
             out += " {}".format(a.value)
         return out + " }"
 
 class ir_global_attribs_parameter(ir_global_attribs):
+    """
+    Class for LLVM global attribute parameters
+    None optional values have to be set in the init call!
+    For more Informations to global variables in LLVM-IR see:  #https://llvm.org/docs/LangRef.html#global-attributes
+    """
     def __init__(self, name: str, attribs: list) -> None:
+        """Initialite the global attrib parameter
+
+        :param name: name of the parameters
+        :type name: str
+        :param attribs: [attribs of the parameter
+        :type attribs: list
+        """
         self.name: str = name
         self.attribs: list[parameter_attribute_types] = attribs
 
     def add_attribute(self, attribute: parameter_attribute_types):
+        """see irbb_global_attribs for more informations
+        """
         self.add_attributes([attribute])
     
     def add_attributes(self, attributes: list):
+        """see irbb_global_attribs for more informations
+        """
         self.attribs = list(set(self.attribs + attributes))
     
     def rename(self, name: str):
+        """see irbb_global_attribs for more informations
+        """
         self.name: str = name
 
     def generate(self):
+        """see irbb_global_attribs for more informations
+        """
         out = "attributes #{} = {".format(self.name)
         for a in self.attribs:
             out += " {}".format(a.value)
         return out + " }"
 
 class ir_global_metadata_module_flags:
+    """
+    Class for LLVM global metadata module flags
+    None optional values have to be set in the init call!
+
     #!<name> = !{ i32 <type>, !"<id>", <value_ty, value_val> }
+
+    For more Informations to global variables in LLVM-IR see:  #https://llvm.org/docs/LangRef.html#module-flags-metadata
+    """
+    
     def __init__(self, name: str, type: module_flag_type, id: str, value: ir_val) -> None:
         self.name: str = name
         self.type: module_flag_type = type
@@ -763,29 +952,62 @@ class ir_global_metadata_module_flags:
         self.value: ir_val = value
 
     def str_rep(self):
+        """Returns the llvm representation of the flag
+
+        :return: llvm representaiton
+        :rtype: [type]
+        """
         return "!{}".format(self.name)
 
     def generate(self):
+        """returns the whole global module flag (llvm valid)
+
+        :return: [description]
+        :rtype: [type]
+        """
         out = "!{} = !{".format(self.name)
         out += "i32 {}, !\"{}\", {} {}}".format(self.type.value, self.id, self.value.str_ty(), self.value.str_rep())
         return out
 
 class ir_global_metadata:
+    """
+    Class for LLVM global metadata
+    None optional values have to be set in the init call!
+
     #!<name> = !{!"<id>"}
+
+    For more Informations to global variables in LLVM-IR see:  #https://llvm.org/docs/LangRef.html#named-metadata
+    """
+    
     def __init__(self, name: str, id: str) -> None:
         self.name: str = name
         self.id: str = id
 
     def str_rep(self):
+        """Returns the llvm representation of the meta data
+
+        :return: llvm representaiton
+        :rtype: [type]
+        """
         return "!{}".format(self.name)  
 
     def generate(self):
+        """returns the whole global meta data (llvm valid)
+
+        :return: [description]
+        :rtype: [type]
+        """
         out = "!{} = !{".format(self.name)
         out += "!\"{}\"}".format(self.type.value, self.id, self.value.str_ty(), self.value.str_rep())
         return out
     
 #IR_FUNCTION
 class ir_function: 
+    """
+    Class for a LLVM function
+    None optional values have to be set in the init call!
+    For more Informations to global variables in LLVM-IR see:  #https://llvm.org/docs/LangRef.html#functions
+    """
     def __init__(self, return_var: ir_fnc_var, function_name: str, linkage:linkage_types = None, preemption_specifier: preemption_specifier_types = None, visability : visability_types = None, dll_storage_class: dll_storage_types = None, cconv: calling_conventions_types = None, argument_list: list = list(), unnamed_local: unnamed_local_type = None, addr_space: int = None, function_attribs: list = [], section: str = None, comdat: comdat_types = None, align: int = None, gc: str = None, prefix: ir_val = None, prologue: None = None, personality: bool = None, meta_data: str = None):
         self.linkage:linkage_types = linkage
         self.preemption_specifier: preemption_specifier_types = preemption_specifier
@@ -809,15 +1031,30 @@ class ir_function:
         self.basic_blocks: list[ir_basic_block] = []
     
     def add_basic_block(self, basic_block: ir_basic_block) -> None:
+        """adds an basic block to the function
+
+        :param basic_block: the basic block to be added
+        :type basic_block: ir_basic_block
+        """
         if type(basic_block) is irbb_alloca:
             self.basic_blocks.insert(0, basic_block)
         else:
             self.basic_blocks.append(basic_block)
 
     def add_argument(self, arg: ir_var) -> None:
+        """adds an function argument to the function
+
+        :param arg: the argument to be added
+        :type arg: ir_var
+        """
         self.argument_list.append(arg)
 
     def generate(self) -> str:
+        """Returns the valid LLVM IR representation of the function
+
+        :return: valid IR representation
+        :rtype: str
+        """
         out = "define {}{}{}{}{}{} @{}(".format(opt(self.linkage), opt(self.preemption_specifier), opt(self.visability), opt(self.dll_storage_class), opt(self.cconv), self.return_var.str_ty(), self.function_name)
         for i, a in enumerate(self.argument_list):
             if i == 0:
@@ -850,15 +1087,30 @@ class ir_function:
 #IR_FILE
 
 class ir_file_target_triple:
+    """
+    Class for a LLVM target triple (for compilation needs)
+    None optional values have to be set in the init call!
+    For more Informations to global variables in LLVM-IR see:  #https://llvm.org/docs/LangRef.html#target-triple
+    """
     def __init__(self, architecture: target_tripple_architecture_type, vendor: target_tripple_vendor_type, operating_system: target_tripple_operating_system_type) -> None:
         self.architecture: target_tripple_architecture_type = architecture
         self.vendor: target_tripple_vendor_type = vendor
         self.operating_system: target_tripple_operating_system_type = operating_system
 
     def generate(self):
+        """Returns the valid LLVM IR representation of the function
+
+        :return: valid IR representation
+        :rtype: str
+        """
         return "target triple = \"{}-{}-{}\"".format(self.architecture.value, self.vendor.value, self.operating_system.value)
 
 class ir_file_target_datalayout:
+    """
+    Class for a LLVM target datalayout (for compilation needs)
+    None optional values have to be set in the init call!
+    For more Informations to global variables in LLVM-IR see:  #https://llvm.org/docs/LangRef.html#data-layout
+    """
     def __init__(self, little_endian: bool = None, stack_align: int = None, mem_addr_space: target_datalayout_addr_space = None, glob_var_addr_space: target_datalayout_addr_space = None, obj_addr_space: target_datalayout_addr_space = None, ptr_align: list = [], int_align: list = [], vector_align: list = [], float_align: list = [], obj_align: list = [], fnc_align: list = [], mangling: target_datalayout_mangling_type = None, native_int_widths: target_datalayout_addr_space = None, ptr_addr_space: list = []) -> None:
         self.little_endian: bool = little_endian
         self.stack_align: int = stack_align
@@ -878,33 +1130,91 @@ class ir_file_target_datalayout:
             print("ATTENTION - ptr_addr_space it not supported for now!")
     
     def add_endianess(self, little_endian: bool):
+        """adds the endianess information
+
+        :param little_endian: [if litte endianess True, else False
+        :type little_endian: bool
+        """
         self.little_endian: bool = little_endian
 
     def add_stack_align(self, align: int):
+        """Adds the stack align to the data layout
+
+        :param align: the align
+        :type align: int
+        """
         self.stack_align: int = align
 
     def add_mem_addr_space(self, int_values: list):
+        """adds the memory address space
+
+        :param int_values: address space
+        :type int_values: list
+        """
         self.mem_addr_space: target_datalayout_addr_space = target_datalayout_addr_space(int_values)
 
     def add_glob_var_addr_space(self, int_values: list):
+        """adds the global variable address space to the datalayout
+
+        :param int_values: list of integer values
+        :type int_values: list
+        """
         self.glob_var_addr_space: target_datalayout_addr_space = target_datalayout_addr_space(int_values)
     
     def add_obj_addr_space(self, int_values: list):
+        """Adds the address space for objects to the datalayout
+
+        :param int_values: list of int values 
+        :type int_values: list
+        """
         self.obj_addr_space: target_datalayout_addr_space = target_datalayout_addr_space(int_values)
 
     def add_ptr_align_obj(self, ptr_align: target_datalayout_ptr_align):
+        """Adds the pointer align for objects to the datalayout
+
+        :param ptr_align: pointer align
+        :type ptr_align: target_datalayout_ptr_align
+        """
         self.ptr_align.append(ptr_align)
     
     def add_ptr_align(self, size: int, abi: int, pref: int = None):
+        """adds the pointer align to de datalayout
+
+        :param size: size of the pointer
+        :type size: int
+        :param abi: abi
+        :type abi: int
+        :param pref: pref, defaults to None
+        :type pref: int, optional
+        """
         self.ptr_align.append(target_datalayout_ptr_align(size, abi, pref))
         
     def add_int_align_obj(self, int_align: target_datalayout_int_align):
+        """adds the object integer align to dthe datalayout
+
+        :param int_align: align of the integer object
+        :type int_align: target_datalayout_int_align
+        """
         self.int_align.append(int_align)
 
     def add_int_align(self, size: int, abi: int, pref: int = None):
+        """Adds the integer align to the datalayout
+
+        :param size: siz
+        :type size: int
+        :param abi: abi
+        :type abi: int
+        :param pref: pref, defaults to None
+        :type pref: int, optional
+        """
         self.int_align.append(target_datalayout_int_align(size, abi, pref))
     
     def add_vector_align_obj(self, vector_align: target_datalayout_vector_align):
+        """adds the vector align for objects to the datalayout
+
+        :param vector_align: align
+        :type vector_align: target_datalayout_vector_align
+        """
         self.vector_align.append(vector_align)
     
     def add_vector_align(self, size: int, abi: int, pref: int = None):
@@ -935,6 +1245,11 @@ class ir_file_target_datalayout:
         self.native_int_widths: target_datalayout_addr_space = target_datalayout_addr_space(int_values)
 
     def generate(self):
+        """generates the valid LLVM ir code
+
+        :return: valid llvm representation
+        :rtype: [type]
+        """
         tmp_arr = []
         if self.little_endian:
             if self.little_endian is False:
@@ -973,6 +1288,8 @@ class ir_file_target_datalayout:
         return out + "\""
         
 class ir_file:
+    """Represents an LLVM IR file
+    """
     def __init__(self, source_filename: str = None, target_datalayout: ir_file_target_datalayout = None, target_triple: ir_file_target_triple = None) -> None:
         self.source_filename: str = source_filename
         
@@ -1132,51 +1449,80 @@ class irbb_return(ir_basic_block):
         return out
 
 class irbb_br(ir_basic_block):
+    """Abstract class for all ir basic blocks"""
     def __init__(self) -> None:
         super().__init__()
         super().not_supported(self)
 
 class irbb_switch(ir_basic_block):
+    """represents an llvm ir switch instruction 
+    NOT SUPPORTED FOR NOW
+    """
     def __init__(self) -> None:
         super().__init__()
         super().not_supported(self)
 
 class irbb_indirectbr(ir_basic_block):
+    """represents an llvm ir indirectbr instruction 
+    NOT SUPPORTED FOR NOW
+    """
     def __init__(self) -> None:
         super().__init__()
         super().not_supported(self)
 
 class irbb_invoke(ir_basic_block):
+    """represents an llvm ir invoke instruction
+    None optional values have to be set in the init call! 
+    NOT SUPPORTED FOR NOW
+    """
     def __init__(self) -> None:
         super().__init__()
         super().not_supported(self)
 
 class irbb_callbr(ir_basic_block):
+    """represents an llvm ir callbr instruction 
+    NOT SUPPORTED FOR NOW
+    """
     def __init__(self) -> None:
         super().__init__()
         super().not_supported(self)
 
 class irbb_resume(ir_basic_block):
+    """represents an llvm ir resume instruction 
+    NOT SUPPORTED FOR NOW
+    """
     def __init__(self) -> None:
         super().__init__()
         super().not_supported(self)
 
 class irbb_catchswitch(ir_basic_block):
+    """represents an llvm ir catchswitch instruction 
+    NOT SUPPORTED FOR NOW
+    """
     def __init__(self) -> None:
         super().__init__()
         super().not_supported(self)
 
 class irbb_catchret(ir_basic_block):
+    """represents an llvm ir catchret instruction 
+    NOT SUPPORTED FOR NOW
+    """
     def __init__(self) -> None:
         super().__init__()
         super().not_supported(self)
 
 class irbb_cleanupret(ir_basic_block):
+    """represents an llvm ir cleanupret instruction 
+    NOT SUPPORTED FOR NOW
+    """
     def __init__(self) -> None:
         super().__init__()
         super().not_supported(self)
 
 class irbb_unreachable(ir_basic_block):
+    """represents an llvm ir unreachable instruction 
+    NOT SUPPORTED FOR NOW
+    """
     def __init__(self) -> None:
         super().__init__()
         super().not_supported(self)
@@ -1184,6 +1530,11 @@ class irbb_unreachable(ir_basic_block):
 
 # -> Unary Operations
 class irbb_fneg(ir_basic_block):
+    """represents an llvm ir fneg instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    NOT SUPPORTED FOR NOW
+    """
     def __init__(self, result_var: ir_var, op1_var: ir_param, fast_math_flags: list = []) -> None:
         super().__init__()
         self.result_var: ir_var = result_var
@@ -1201,6 +1552,10 @@ class irbb_fneg(ir_basic_block):
 
 # -> Binary Operations
 class irbb_add(ir_basic_block):
+    """represents an llvm ir add instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, nsw: bool = False, nuw: bool = False) -> None:
         super().__init__()
         self.result_var: ir_var = result_var
@@ -1220,6 +1575,10 @@ class irbb_add(ir_basic_block):
         return out
 
 class irbb_fadd(ir_basic_block):
+    """represents an llvm ir fadd instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, fast_math_flags: list = []) -> None:
         super().__init__()
         self.result_var: ir_var = result_var
@@ -1236,6 +1595,10 @@ class irbb_fadd(ir_basic_block):
         return out
 
 class irbb_sub(ir_basic_block):
+    """represents an llvm ir sub instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, nsw: bool = False, nuw: bool = False) -> None:
         super().__init__()
         self.result_var: ir_var = result_var
@@ -1255,6 +1618,10 @@ class irbb_sub(ir_basic_block):
         return out
 
 class irbb_fsub(ir_basic_block):
+    """represents an llvm ir fsub instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, fast_math_flags: list = []) -> None:
         super().__init__()
         self.result_var: ir_var = result_var
@@ -1271,6 +1638,10 @@ class irbb_fsub(ir_basic_block):
         return out
 
 class irbb_mul(ir_basic_block):
+    """represents an llvm ir mul instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, nsw: bool = False, nuw: bool = False) -> None:
         super().__init__()
         self.result_var: ir_var = result_var
@@ -1290,6 +1661,10 @@ class irbb_mul(ir_basic_block):
         return out
 
 class irbb_fmul(ir_basic_block):
+    """represents an llvm ir fmul instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, fast_math_flags: list = []) -> None:
         super().__init__()
         self.result_var: ir_var = result_var
@@ -1306,6 +1681,10 @@ class irbb_fmul(ir_basic_block):
         return out
 
 class irbb_udiv(ir_basic_block):
+    """represents an llvm ir udiv instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, exact: bool = False) -> None:
         super().__init__()
         self.result_var: ir_var = result_var
@@ -1322,6 +1701,10 @@ class irbb_udiv(ir_basic_block):
         return out
 
 class irbb_sdiv(ir_basic_block):
+    """represents an llvm ir sdiv instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, exact: bool = False) -> None:
         super().__init__()
         self.result_var: ir_var = result_var
@@ -1338,6 +1721,10 @@ class irbb_sdiv(ir_basic_block):
         return out
 
 class irbb_fdiv(ir_basic_block):
+    """represents an llvm ir fdiv instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, fast_math_flags: list = []) -> None:
         super().__init__()
         self.result_var: ir_var = result_var
@@ -1354,6 +1741,10 @@ class irbb_fdiv(ir_basic_block):
         return out
 
 class irbb_urem(ir_basic_block):
+    """represents an llvm ir urem instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, exact: bool = False) -> None:
         super().__init__()
         self.result_var: ir_var = result_var
@@ -1366,6 +1757,10 @@ class irbb_urem(ir_basic_block):
         return "{} = urem {} {}, {}".format(self.result_var.str_rep(), self.result_var.str_ty(), self.op1_var.str_rep(), self.op2_var.str_rep())
 
 class irbb_srem(ir_basic_block):
+    """represents an llvm ir srem instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, exact: bool = False) -> None:
         super().__init__()
         self.result_var: ir_var = result_var
@@ -1378,6 +1773,10 @@ class irbb_srem(ir_basic_block):
         return "{} = srem {} {}, {}".format(self.result_var.str_rep(), self.result_var.str_ty(), self.op1_var.str_rep(), self.op2_var.str_rep())
 
 class irbb_frem(ir_basic_block):
+    """represents an llvm ir frem instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, fast_math_flags: list = []) -> None:
         super().__init__()
         self.result_var: ir_var = result_var
@@ -1396,6 +1795,10 @@ class irbb_frem(ir_basic_block):
 
 # -> Bitwise Binary Operations
 class irbb_shl(ir_basic_block):
+    """represents an llvm ir shl instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, nsw: bool = False, nuw: bool = False) -> None:
         super().__init__()
         self.result_var: ir_var = result_var
@@ -1415,6 +1818,10 @@ class irbb_shl(ir_basic_block):
         return out
 
 class irbb_lshr(ir_basic_block):
+    """represents an llvm ir lshr instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, exact: bool = False) -> None:
         super().__init__()
         self.result_var: ir_var = result_var
@@ -1431,6 +1838,10 @@ class irbb_lshr(ir_basic_block):
         return out
 
 class irbb_ashr(ir_basic_block):
+    """represents an llvm ir ashr instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, exact: bool = False) -> None:
         super().__init__()
         self.result_var: ir_var = result_var
@@ -1447,6 +1858,10 @@ class irbb_ashr(ir_basic_block):
         return out
 
 class irbb_and(ir_basic_block):
+    """represents an llvm ir and instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, exact: bool = False) -> None:
         super().__init__()
         self.result_var: ir_var = result_var
@@ -1459,6 +1874,10 @@ class irbb_and(ir_basic_block):
         return "{} = and {} {}, {}".format(self.result_var.str_rep(), self.result_var.str_ty(), self.op1_var.str_rep(), self.op2_var.str_rep())
 
 class irbb_or(ir_basic_block):
+    """represents an llvm ir or instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, exact: bool = False) -> None:
         super().__init__()
         self.result_var: ir_var = result_var
@@ -1471,6 +1890,10 @@ class irbb_or(ir_basic_block):
         return "{} = or {} {}, {}".format(self.result_var.str_rep(), self.result_var.str_ty(), self.op1_var.str_rep(), self.op2_var.str_rep())
 
 class irbb_xor(ir_basic_block):
+    """represents an llvm ir xor instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, exact: bool = False) -> None:
         super().__init__()
         self.result_var: ir_var = result_var
@@ -1485,11 +1908,21 @@ class irbb_xor(ir_basic_block):
 
 # -> Vector Operations
 class irbb_insertelement(ir_basic_block):
+    """represents an llvm ir insertelemment instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    NOT SUPPORETED FOR NOW
+    """
     def __init__(self) -> None:
         super().__init__()
         super().not_supported(self)
 
 class irbb_shufflevector(ir_basic_block):
+    """represents an llvm ir shufflevector instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    NOT SUPPORETED FOR NOW
+    """
     def __init__(self) -> None:
         super().__init__()
         super().not_supported(self)
@@ -1497,11 +1930,20 @@ class irbb_shufflevector(ir_basic_block):
 
 # -> Aggregate Operations
 class irbb_extractvalue(ir_basic_block):
+    """represents an llvm ir extractvalue instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    NOT SUPPORETED FOR NOW
+    """
     def __init__(self) -> None:
         super().__init__()
         super().not_supported(self)
 
 class irbb_insertvalue(ir_basic_block):
+    """represents an llvm ir mul instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self) -> None:
         super().__init__()
         super().not_supported(self)
@@ -1509,8 +1951,9 @@ class irbb_insertvalue(ir_basic_block):
 
 # -> Memory Access and Addressing Operations
 class irbb_alloca(ir_basic_block):
-    """    
-    Allocation instruction - IR_Basic_Block
+    """represents an llvm ir alloca instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
     """
     # Num Elements is not supported for now!
 
@@ -1526,8 +1969,9 @@ class irbb_alloca(ir_basic_block):
         return out
 
 class irbb_load(ir_basic_block):
-    """    
-    Load instruction - IR_Basic_Block
+    """represents an llvm ir load instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
     """
     def __init__(self, target_var: ir_var, source_var: ir_var, align: int = None):
         super().__init__()
@@ -1542,8 +1986,9 @@ class irbb_load(ir_basic_block):
         return out
 
 class irbb_store(ir_basic_block):
-    """    
-    Store instruction - IR_Basic_Block
+    """"represents an llvm ir store instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
     """
     def __init__(self, source_var: ir_param, target_var: ir_var, align: int = None): 
         super().__init__()
@@ -1558,6 +2003,10 @@ class irbb_store(ir_basic_block):
         return out
 
 class irbb_fence(ir_basic_block):
+    """represents an llvm ir fence instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self, ordering: atomic_memory_ordering_constraints_type, syncscope: str = None) -> None:
         super().__init__()
         self.ordering: atomic_memory_ordering_constraints_type = ordering
@@ -1570,11 +2019,20 @@ class irbb_fence(ir_basic_block):
         return out + " {}".format(self.ordering)
 
 class irbb_cmpxchg(ir_basic_block):
+    """represents an llvm ir cmpxchg instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    NOT SUPPORTED FOR NOW
+    """
     def __init__(self) -> None:
         super().__init__()
         super().not_supported(self)
 
 class irbb_atomicrmw(ir_basic_block):
+    """represents an llvm ir atomicrmw instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self, old_var: ir_val, operation: atomicrmw_op_type, pointer: ir_var, value: ir_val, ordering: atomic_memory_ordering_constraints_type, volatile: bool = False, syncscope: str = None, align: int = None) -> None:
         super().__init__()
         self.old_var: ir_var = old_var
@@ -1597,6 +2055,11 @@ class irbb_atomicrmw(ir_basic_block):
         return out + ", align {}".format(self.align)
 
 class irbb_getelementptr(ir_basic_block):
+    """represents an llvm ir getelementptr instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    NOT SUPPORTED FOR NOW
+    """
     def __init__(self) -> None:
         super().__init__()
         super().not_supported(self)
@@ -1604,6 +2067,10 @@ class irbb_getelementptr(ir_basic_block):
 
 # -> Conversion Operations
 class irbb_trunc_to(ir_basic_block):
+    """represents an llvm ir trunc instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self, result_var: ir_var, value: ir_val, to_dtype: ir_dtype) -> None:
         super().__init__()
         self.result_var: ir_var = result_var
@@ -1620,6 +2087,10 @@ class irbb_trunc_to(ir_basic_block):
         return "{} = trunc {} {} to {}".format(self.result_var.str_rep(), self.result_var.str_ty(), self.value.str_rep(), self.to_dtype.value)
 
 class irbb_zext_to(ir_basic_block):
+    """represents an llvm ir zext to instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self, result_var: ir_var, value: ir_val, to_dtype: ir_dtype) -> None:
         super().__init__()
         self.result_var: ir_var = result_var
@@ -1636,6 +2107,10 @@ class irbb_zext_to(ir_basic_block):
         return "{} = zext {} {} to {}".format(self.result_var.str_rep(), self.result_var.str_ty(), self.value.str_rep(), self.to_dtype.value)
 
 class irbb_sext_to(ir_basic_block):
+    """represents an llvm ir sext to instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self, result_var: ir_var, value: ir_val, to_dtype: ir_dtype) -> None:
         super().__init__()
         self.result_var: ir_var = result_var
@@ -1652,6 +2127,10 @@ class irbb_sext_to(ir_basic_block):
         return "{} = sext {} {} to {}".format(self.result_var.str_rep(), self.result_var.str_ty(), self.value.str_rep(), self.to_dtype.value)
 
 class irbb_fptrunc_to(ir_basic_block):
+    """represents an llvm ir fptrunc instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self, result_var: ir_var, value: ir_val, to_dtype: ir_dtype) -> None:
         super().__init__()
         self.result_var: ir_var = result_var
@@ -1668,6 +2147,10 @@ class irbb_fptrunc_to(ir_basic_block):
         return "{} = fptrunc {} {} to {}".format(self.result_var.str_rep(), self.result_var.str_ty(), self.value.str_rep(), self.to_dtype.value)
 
 class irbb_fpext_to(ir_basic_block):
+    """represents an llvm ir fpext to instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self, result_var: ir_var, value: ir_val, to_dtype: ir_dtype) -> None:
         super().__init__()
         self.result_var: ir_var = result_var
@@ -1684,6 +2167,10 @@ class irbb_fpext_to(ir_basic_block):
         return "{} = fpext {} {} to {}".format(self.result_var.str_rep(), self.result_var.str_ty(), self.value.str_rep(), self.to_dtype.value)
 
 class irbb_fptoui_to(ir_basic_block):
+    """represents an llvm ir fptoui to instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self, result_var: ir_var, value: ir_val, to_dtype: ir_dtype) -> None:
         super().__init__()
         self.result_var: ir_var = result_var
@@ -1700,6 +2187,10 @@ class irbb_fptoui_to(ir_basic_block):
         return "{} = fptoui {} {} to {}".format(self.result_var.str_rep(), self.result_var.str_ty(), self.value.str_rep(), self.to_dtype.value)
 
 class irbb_fptosi_to(ir_basic_block):
+    """represents an llvm ir fptosi to instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self, result_var: ir_var, value: ir_val, to_dtype: ir_dtype) -> None:
         super().__init__()
         self.result_var: ir_var = result_var
@@ -1716,6 +2207,10 @@ class irbb_fptosi_to(ir_basic_block):
         return "{} = fptosi {} {} to {}".format(self.result_var.str_rep(), self.result_var.str_ty(), self.value.str_rep(), self.to_dtype.value)
 
 class irbb_uitofp_to(ir_basic_block):
+    """represents an llvm ir uitofp to instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self, result_var: ir_var, value: ir_val, to_dtype: ir_dtype) -> None:
         super().__init__()
         self.result_var: ir_var = result_var
@@ -1732,6 +2227,10 @@ class irbb_uitofp_to(ir_basic_block):
         return "{} = uitofp {} {} to {}".format(self.result_var.str_rep(), self.result_var.str_ty(), self.value.str_rep(), self.to_dtype.value)
 
 class irbb_sitofp_to(ir_basic_block):
+    """represents an llvm ir sitofp to instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self, result_var: ir_var, value: ir_val, to_dtype: ir_dtype) -> None:
         super().__init__()
         self.result_var: ir_var = result_var
@@ -1748,16 +2247,28 @@ class irbb_sitofp_to(ir_basic_block):
         return "{} = sitofp {} {} to {}".format(self.result_var.str_rep(), self.result_var.str_ty(), self.value.str_rep(), self.to_dtype.value)
 
 class irbb_ptrtoint_to(ir_basic_block):
+    """represents an llvm ir ptrtoint to instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self) -> None:
         super().__init__()
         super().not_supported(self)
 
 class irbb_inttoptr_to(ir_basic_block):
+    """represents an llvm ir inttoptr to instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self) -> None:
         super().__init__()
         super().not_supported(self)
 
 class irbb_bitcast_to(ir_basic_block):
+    """represents an llvm ir bitcast instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self) -> None:
         super().__init__()
         super().not_supported(self)
@@ -1770,6 +2281,10 @@ class irbb_addrspacecast_to(ir_basic_block):
 
 # -> Other Operations
 class irbb_icmp(ir_basic_block):
+    """represents an llvm ir icmp instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, condition: compare_type) -> None:
         super().__init__()
         self.result_var: ir_var = result_var
@@ -1782,6 +2297,10 @@ class irbb_icmp(ir_basic_block):
         return out
 
 class irbb_fcmp(ir_basic_block):
+    """represents an llvm ir fcmp instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self, result_var: ir_var, op1_var: ir_param, op2_var: ir_param, condition: compare_type, fast_math_flags: list = []) -> None:
         super().__init__()
         self.result_var: ir_var = result_var
@@ -1797,11 +2316,19 @@ class irbb_fcmp(ir_basic_block):
         return out + " {} {} {}, {}".format(self.condition.value, self.op1_var.str_ty(), self.op1_var.str_rep(), self.op2_var.str_rep())
 
 class irbb_phi(ir_basic_block):
+    """represents an llvm ir phi instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self) -> None:
         super().__init__()
         super().not_supported(self)
 
 class irbb_select(ir_basic_block):
+    """represents an llvm ir select instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self, result_var: ir_var, val1_var: ir_param, val2_var: ir_param, condition: compare_type, fast_math_flags: list = []) -> None:
         super().__init__()
         self.result_var: ir_var = result_var
@@ -1818,6 +2345,10 @@ class irbb_select(ir_basic_block):
         return out
 
 class irbb_freeze(ir_basic_block):
+    """represents an llvm ir freeze instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self, result_var: ir_var, value: ir_var) -> None:
         super().__init__()
         self.result_var: ir_var = result_var
@@ -1827,6 +2358,10 @@ class irbb_freeze(ir_basic_block):
         return "{} = freeze {} {}".format(self.result_var.str_rep(), self.value.str_ty(), self.value.str_rep())
 
 class irbb_call(ir_basic_block):
+    """represents an llvm ir call instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self, result_var: ir_var, fn_ptr: str, fn_args: list, tail: tail_type = None, fast_math_flags: list = [], cconv: calling_conventions_types = None, ret_attrs: list = [], addrspace: int = None, fn_attrs: list = [], operand_bundle: list = []) -> None:
         super().__init__()
         self.result_var: ir_var = result_var
@@ -1868,21 +2403,37 @@ class irbb_call(ir_basic_block):
         #operand bundle NOT supported
 
 class irbb_va_arg(ir_basic_block):
+    """represents an llvm ir arg instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self) -> None:
         super().__init__()
         super().not_supported(self)
 
 class irbb_landingpad(ir_basic_block):
+    """represents an llvm ir landingpad instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self) -> None:
         super().__init__()
         super().not_supported()
 
 class irbb_catchpad(ir_basic_block):
+    """represents an llvm ir catchpad instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self) -> None:
         super().__init__()
         super().not_supported(self)
 
 class irbb_cleanuppad(ir_basic_block):
+    """represents an llvm ir cleanuppad instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self) -> None:
         super().__init__()
         super().not_supported(self)
@@ -1891,22 +2442,34 @@ class irbb_cleanuppad(ir_basic_block):
 # -> Intrinsic Functions
 # Variable Argument Handling Intrinsics
 class irbb_llvm_va_start(ir_basic_block):
+    """represents an llvm ir llvm va start instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self) -> None:
         super().__init__()
         super().not_supported(self)
 
 class irbb_llvm_va_end(ir_basic_block):
+    """represents an llvm llvm va end instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self) -> None:
         super().__init__()
         super().not_supported(self)
 
 class irbb_llvm_va_copy(ir_basic_block):
+    """represents an llvm ir llvm va copy instruction
+    None optional values have to be set in the init call! 
+    For more informations see the LLVM IR Reference manual
+    """
     def __init__(self) -> None:
         super().__init__()
         super().not_supported(self)
 
 
-
+#EXAMPLE
 """
 # Filename
 file = ir_file("test_file.c")

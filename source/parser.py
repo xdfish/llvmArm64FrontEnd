@@ -38,6 +38,8 @@ class asm_ftype(Enum):
     general_purpose = "GP"
 
 class asm_fnctype(Enum):
+    """Contains the Types of user written and system generated funtions.
+    """
     sys_fnc = "SYS_FNC"
     user_fnc = "USER_FNC"
     undefined =  "UNDEFINED"
@@ -83,6 +85,8 @@ class asm_dtype(Enum):
 supported_register_types = set(reg.value for reg in asm_dtype)
 
 class asm_itype(Enum):
+    """List of known ARM Instructions (not complete!!!)
+    """
     sub = "sub"
     mul = "mul"
     adrp = "adrp"
@@ -108,6 +112,8 @@ class asm_itype(Enum):
     unknown = "<unknown>"
 
 class asm_inst:
+    """Represents a Assembler Instruction.
+    """
     def __init__(self, function : str = "", address : str = "", hexValue : str = "", instruction : asm_itype = asm_itype.unknown, params : list = []):
         """Inititalize a new asm_instruction
 
@@ -155,11 +161,10 @@ class asm_param:
         :param dtype:   Datatype of the given parameter
     """
     def __init__(self, value : str):
-        """
-        Initialize a asm_param by analyzing the given parameter value.
+        """Initialize a asm_param by analyzing the given parameter value.
 
-        :param value:   Value of the parameter
-        :type value:    str
+        :param value: Value of the parameter
+        :type value: str
         """
         self.raw : str = value
         self.value : any = value
@@ -323,15 +328,20 @@ class parsed_asm_list:
     :type const_str:    asm_function
     """
     def __init__(self, filename: str = None, magic: str = None, cputype: str = None, cpu_subtype: str = None, filetype: str = None, sizeofcmds: str = None):
-        """
+        """[summary]
+
         :param filename: Filename of the parsed assembler file, defaults to None
         :type filename: str, optional
-        :param format: format of teh parsed asssembler code, defaults to None
-        :type format: str, optional
-        :param architecture: architecture of the parsed assembler code, defaults to None
-        :type architecture: str, optional
-        :param execformat: execution format of the parsed assembler code, defaults to None
-        :type execformat: str, optional
+        :param magic: Magic attribute of the executeable file, defaults to None
+        :type magic: str, optional
+        :param cputype: CPU Type attribute of the executeable file, defaults to None
+        :type cputype: str, optional
+        :param cpu_subtype: CPU Subtype attribute of the executeable file, defaults to None
+        :type cpu_subtype: str, optional
+        :param filetype: Filetype of the executeable file, defaults to None
+        :type filetype: str, optional
+        :param sizeofcmds: Command size attribute of the executeable file, defaults to None
+        :type sizeofcmds: str, optional
         """
         self.filename: str = filename
         self.magic: str = magic
@@ -345,13 +355,36 @@ class parsed_asm_list:
         self.const_table: dict = {}
         self.functions = []
 
-    def set_const_string_with_address(self, address: str, txt: str):
-        self.cstring_table[address] = txt
+    def set_const_string_with_address(self, address: str, const: str):
+        """adds an constand and its adress.
+        represents the constant section (Mach-O)
+
+        :param address: adress of the constant
+        :type address: str
+        :param const: value of the constant
+        :type txt: str
+        """
+        self.cstring_table[address] = const
 
     def set_function_name_with_address(self, address: str, txt: str):
+        """adds an (constant) string and its adress
+        represents the cstring section (Mach-O)
+
+        :param address: adress of the constant string
+        :type address: str
+        :param txt: valu of the constant text
+        :type txt: str
+        """
         self.function_table[address] = txt
 
     def get_const_string_by_address(self, address: str) -> str:
+        """Returns the constant of the given address
+        formerly const section (Mach-O)
+        :param address: adress of the constant
+        :type address: str
+        :return: value of the constant
+        :rtype: str
+        """
         if address in self.cstring_table:
             return self.cstring_table[address]
         elif address in self.const_table:
@@ -360,6 +393,13 @@ class parsed_asm_list:
             return None
     
     def get_function_name_name_by_address(self, address: str) -> str:
+        """Returns the constant string of the given address
+        formerly cstring section (Mach-O)
+        :param address: adress of the constant
+        :type address: str
+        :return: value of the constant
+        :rtype: str
+        """
         if address in self.function_table:
             return self.function_table[address]
         else: 
@@ -377,6 +417,7 @@ class parsed_asm_list:
 
 def parse_asm(raw_asm: str) -> parsed_asm_list:
     """
+    !!!!DEPRECATED!!!!
     Parses the raw asm_list, which is deliverd by the disabembler
 
     :param raw_asm: raw_asm list (of disasembler)

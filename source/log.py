@@ -13,10 +13,10 @@ def log(module: str, msg: str):
     :type msg: str
     """
     
-    text = "{}:\t\t{}\n".format(module, msg)
+    text = "{}:\t\t{}".format(module, msg)
     print(text)
     if export_log:
-        export_log(text)
+        export_log(text+"\n")
 
 def export_log(txt: str):
     """exports the log output from log() in a text-file.

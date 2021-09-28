@@ -102,7 +102,7 @@ def convert_function(fnc: asm_function) -> ir_function:
             fn.add_basic_block(irbb_add(t_target_var, t_var1, t_var2, True, False))
         elif i.instruction is asm_itype.sub:
             fn.add_basic_block(irbb_sub(t_target_var, t_var1, t_var2, True, False))
-        elif i.instruction is asm_itype.sdiv or i.instrction is asm_itype.udiv:
+        elif i.instruction is asm_itype.sdiv or i.instruction is asm_itype.udiv:
             fn.add_basic_block(irbb_sub(t_target_var, t_var1, t_var2, True, False))
         else:
             fn.add_basic_block(irbb_mul(t_target_var, t_var1, t_var2, True, False))

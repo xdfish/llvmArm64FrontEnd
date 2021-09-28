@@ -67,58 +67,78 @@ class disasembled_raw():
         self.cstring_section: str = None
         self.symbol_table: str = None
         self.export_files: bool = export_files
+        self.valid: bool = True
         if not os.path.isfile(self.filename):
+            self.valid = False
             log(os.path.basename(__file__), "File not found: {}".format(source_filename))
 
+
     def get_text_section(self):
-        subp_command = ["objdump", "-D", self.filename, "--macho", "--full-leading-addr", "--no-symbolic-operands"]
-        p = subprocess.Popen(subp_command, stdout=subprocess.PIPE)
-        out, err = p.communicate()
-        out = out.decode("utf-8")
-        self.text_section = out.splitlines()
-        if self.export_files:
-            export_file(self.filename, out, "_str_section")
-        log(os.path.basename(__file__), "-> str_section (DONE)")
+        if self.valid:
+            subp_command = ["objdump", "-D", self.filename, "--macho", "--full-leading-addr", "--no-symbolic-operands"]
+            p = subprocess.Popen(subp_command, stdout=subprocess.PIPE)
+            out, err = p.communicate()
+            out = out.decode("utf-8")
+            self.text_section = out.splitlines()
+            if self.export_files:
+                export_file(self.filename, out, "_str_section")
+            log(os.path.basename(__file__), "-> str_section (DONE)")
+        else:
+            log(os.path.basename(__file__), "-> str_section (SKIPPED)")
         
 
     def get_private_header(self):
-        subp_command = ["objdump", "-C", self.filename, "--macho", "--private-header"]
-        p = subprocess.Popen(subp_command, stdout=subprocess.PIPE)
-        out, err = p.communicate()
-        out = out.decode("utf-8")
-        self.private_header = out.splitlines()
-        if self.export_files:
-            export_file(self.filename, out, "_private_header")
-        log(os.path.basename(__file__), "-> private_header (DONE)")
+        if self.valid:
+            subp_command = ["objdump", "-C", self.filename, "--macho", "--private-header"]
+            p = subprocess.Popen(subp_command, stdout=subprocess.PIPE)
+            out, err = p.communicate()
+            out = out.decode("utf-8")
+            self.private_header = out.splitlines()
+            if self.export_files:
+                export_file(self.filename, out, "_private_header")
+            log(os.path.basename(__file__), "-> private_header (DONE)")
+        else:
+            log(os.path.basename(__file__), "-> private_header (SKIPPED)")
 
     def get_cstring_section(self):
-        subp_command = ["objdump", "-C", self.filename, "--macho", "--section=__cstring"]
-        p = subprocess.Popen(subp_command, stdout=subprocess.PIPE)
-        out, err = p.communicate()
-        out = out.decode("utf-8")
-        self.cstring_section = out.splitlines()
-        if self.export_files:
-            export_file(self.filename, out, "_cstring_section")
-        log(os.path.basename(__file__), "-> cstring_section (DONE")
+        if self.valid:
+            subp_command = ["objdump", "-C", self.filename, "--macho", "--section=__cstring"]
+            p = subprocess.Popen(subp_command, stdout=subprocess.PIPE)
+            out, err = p.communicate()
+            out = out.decode("utf-8")
+            self.cstring_section = out.splitlines()
+            if self.export_files:
+                export_file(self.filename, out, "_cstring_section")
+            log(os.path.basename(__file__), "-> cstring_section (DONE")
+        else:
+            log(os.path.basename(__file__), "-> cstring_section (SKIPPED")
 
     def get_symbol_table(self):
-        subp_command = ["objdump", "-C", self.filename, "--macho", "--indirect-symbols"]
-        p = subprocess.Popen(subp_command, stdout=subprocess.PIPE)
-        out, err = p.communicate()
-        out = out.decode("utf-8")
-        self.symbol_table = out.splitlines()
-        if self.export_files:
-            export_file(self.filename, out, "indirect_symbols")
-        log(os.path.basename(__file__), "-> symbol_table (DONE)")
+        if self.valid:
+            subp_command = ["objdump", "-C", self.filename, "--macho", "--indirect-symbols"]
+            p = subprocess.Popen(subp_command, stdout=subprocess.PIPE)
+            out, err = p.communicate()
+            out = out.decode("utf-8")
+            self.symbol_table = out.splitlines()
+            if self.export_files:
+                export_file(self.filename, out, "indirect_symbols")
+            log(os.path.basename(__file__), "-> symbol_table (DONE)")
+        else:
+            log(os.path.basename(__file__), "-> symbol_table (SKIPPED)")
 
     def disasemble(self):
-        log(os.path.basename(__file__), "Disasembling file: {}".format(self.filename))
-        self.get_text_section()
-        self.get_private_header()
-        self.get_cstring_section()
-        self.get_symbol_table()
-        log(os.path.basename(__file__), "COMPLETE\n")
-        return self
+        if self.valid:
+            log(os.path.basename(__file__), "Disasembling file: {}".format(self.filename))
+            self.get_text_section()
+            self.get_private_header()
+            self.get_cstring_section()
+            self.get_symbol_table()
+            log(os.path.basename(__file__), "COMPLETE\n")
+            return self
+        else:
+            log(os.path.basename(__file__), "Disassembling skipped (no valid data)")
+            return None
+        
 
 
 #Helpfunctions

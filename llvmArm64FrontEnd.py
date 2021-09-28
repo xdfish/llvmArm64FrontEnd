@@ -14,11 +14,13 @@ def generate_llvm_ir_of_arm64():
     source_file = input("@-> Enter filename: ")
     input("@-> Press any key to start disasembling")
     asm_raw = disasembler.disasembled_raw(source_file, export).disasemble()
-    source_file = input("@-> Press any key to start parssing")
-    if asm_raw == False:
-        return False
+    if not asm_raw:
+        return
+    input("@-> Press any key to start parssing")
     asm_parsed = parser.parse_raw_asm(asm_raw)
-    source_file = input("@-> Press any key to start conversiond an ir-generation")
+    if not asm_parsed:
+        return
+    input("@-> Press any key to start conversiond an ir-generation")
     converter.analyze_asm(asm_parsed).generate()
 
 def run():

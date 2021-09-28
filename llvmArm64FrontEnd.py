@@ -22,6 +22,9 @@ export_unkown_asminstr: bool = False
 information_level_of_detail: int = 0
 
 def generate_llvm_ir_of_arm64():
+    """
+    Controls the workflow of the toolchain
+    """
     global inp_filepath
     if not inp_filepath:
         inp_filepath = input("@-> Enter filename(and path): ")
@@ -40,6 +43,9 @@ def generate_llvm_ir_of_arm64():
     export_file(out_filename, ir_file.generate())
 
 def run():
+    """
+    Handles the start arguments
+    """
     start_args = sys.argv
     if len(start_args) == 2:
         if start_args[1] == "--version":
@@ -80,6 +86,13 @@ def run():
     
 
 def export_file(filename: str, data: str):
+    """Exports a file, and the file path (if not exits)
+
+    :param filename: ilename (including path)
+    :type filename: str
+    :param data: the data in string format
+    :type data: str
+    """
     #TODO Püfen ob file existiert!
     if not os.path.exists(OUT_FOLDER_NAME):
         os.makedirs(OUT_FOLDER_NAME)
@@ -89,7 +102,14 @@ def export_file(filename: str, data: str):
     log(os.path.basename(__file__), "llvm ir file saved: {}".format(file_path))
     #TODO Püfen ob Datei geschrieben werden konnte
 
-def seperate_filename(path: str):
+def seperate_filename(path: str) -> str:
+    """Separates the filename, by removing the path und suffix (if exists)
+
+    :param path: filepath
+    :type path: str
+    :return: filename (without path and suffix)
+    :rtype: str
+    """
     tmp = path
     if "/" in path:
         tmp = tmp.split("/")[-1]
@@ -98,6 +118,13 @@ def seperate_filename(path: str):
     return tmp
 
 def load_cfg_txt(cfg_file: str) -> str:
+    """loads a config txt file (if exists)
+
+    :param cfg_file: name of the config file (inluding cfg folder path)
+    :type cfg_file: str
+    :return: config file content
+    :rtype: str
+    """
     if os.path.isfile(cfg_file):
         return open(cfg_file, 'r').read()
     else:

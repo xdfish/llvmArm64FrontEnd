@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>disasmler module &mdash; llvmArm64FrontEnd  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="irgen module" href="irgen.html" />
+    <link rel="prev" title="converter module" href="converter.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> llvmArm64FrontEnd
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">llvmArm64FrontEnd</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">source</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="converter.html">converter module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">disasmler module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="irgen.html">irgen module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="irtypes.html">irtypes module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="log.html">log module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parser.html">parser module</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">llvmArm64FrontEnd</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="modules.html">source</a> &raquo;</li>
+      <li>disasmler module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/source/disasmler.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-disasmler">
+<span id="disasmler-module"></span><h1>disasmler module<a class="headerlink" href="#module-disasmler" title="Permalink to this headline"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="disasmler.decompile">
+<span class="sig-prename descclassname"><span class="pre">disasmler.</span></span><span class="sig-name descname"><span class="pre">decompile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#disasmler.decompile" title="Permalink to this definition"></a></dt>
+<dd><p>Disasembles an executeable to an assembler listing with the hex-representation of the instructions</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em>) – filename (and path) to the file</p></li>
+<li><p><strong>export</strong> (<em>bool</em>) – if True, the asm_listing ist exported to the tmp folder</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>returns an assembler Listing if successful, or False in case of an error.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str or Bool(False)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="disasmler.decompile_without_hex_rep">
+<span class="sig-prename descclassname"><span class="pre">disasmler.</span></span><span class="sig-name descname"><span class="pre">decompile_without_hex_rep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">any</span></span></span><a class="headerlink" href="#disasmler.decompile_without_hex_rep" title="Permalink to this definition"></a></dt>
+<dd><p>Disasembles an executeable to an assember listing without the hex representation of the Instructions
+This function is currently not in use for the ztransofmration process.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em>) – filename (and path) to the file</p></li>
+<li><p><strong>export</strong> (<em>bool</em>) – if True, the asm_listing ist exported to the tmp folder</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>returns an assembler Listing if successful, or False in case of an error.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str or Bool(False)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="disasmler.disasembled_raw">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">disasmler.</span></span><span class="sig-name descname"><span class="pre">disasembled_raw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source_filename</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export_files</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#disasmler.disasembled_raw" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>represents the disasembled content for a Mach-O file an the needen methods to feth and process them.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="disasmler.disasembled_raw.disasemble">
+<span class="sig-name descname"><span class="pre">disasemble</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#disasmler.disasembled_raw.disasemble" title="Permalink to this definition"></a></dt>
+<dd><p>triggers the disassembling process of the given file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>disasembled content of the file</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="#disasmler.disasembled_raw" title="disasmler.disasembled_raw">disasembled_raw</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="disasmler.disasembled_raw.get_cstring_section">
+<span class="sig-name descname"><span class="pre">get_cstring_section</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#disasmler.disasembled_raw.get_cstring_section" title="Permalink to this definition"></a></dt>
+<dd><p>Disassembles the cstring section of a Mach-O file</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="disasmler.disasembled_raw.get_private_header">
+<span class="sig-name descname"><span class="pre">get_private_header</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#disasmler.disasembled_raw.get_private_header" title="Permalink to this definition"></a></dt>
+<dd><p>Disassembles the text private header of a Mach-O file</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="disasmler.disasembled_raw.get_symbol_table">
+<span class="sig-name descname"><span class="pre">get_symbol_table</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#disasmler.disasembled_raw.get_symbol_table" title="Permalink to this definition"></a></dt>
+<dd><p>Disassembles the symbol table of a Mach-O file</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="disasmler.disasembled_raw.get_text_section">
+<span class="sig-name descname"><span class="pre">get_text_section</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#disasmler.disasembled_raw.get_text_section" title="Permalink to this definition"></a></dt>
+<dd><p>Disassembles the text section of a Mach-O file</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="disasmler.export_file">
+<span class="sig-prename descclassname"><span class="pre">disasmler.</span></span><span class="sig-name descname"><span class="pre">export_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">content</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename_suffix</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#disasmler.export_file" title="Permalink to this definition"></a></dt>
+<dd><p>Allows to export a file. not in use at the moment</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em>) – filename (and path)</p></li>
+<li><p><strong>content</strong> (<em>str</em>) – content to export</p></li>
+<li><p><strong>filename_suffix</strong> (<em>str</em><em>, </em><em>optional</em>) – file suffix, defaults to “”</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="converter.html" class="btn btn-neutral float-left" title="converter module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="irgen.html" class="btn btn-neutral float-right" title="irgen module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Sebastian Kunz.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

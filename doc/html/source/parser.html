@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>parser module &mdash; llvmArm64FrontEnd  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="log module" href="log.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> llvmArm64FrontEnd
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">llvmArm64FrontEnd</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">source</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="converter.html">converter module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="disasmler.html">disasmler module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="irgen.html">irgen module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="irtypes.html">irtypes module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="log.html">log module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">parser module</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">llvmArm64FrontEnd</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="modules.html">source</a> &raquo;</li>
+      <li>parser module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/source/parser.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-parser">
+<span id="parser-module"></span><h1>parser module<a class="headerlink" href="#module-parser" title="Permalink to this headline"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="parser.asm_dtype">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">parser.</span></span><span class="sig-name descname"><span class="pre">asm_dtype</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parser.asm_dtype" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>Possible Datatypes of the ARM-Registers.
+This also provides the supported register for tge parsing process</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_dtype.f128">
+<span class="sig-name descname"><span class="pre">f128</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'q'</span></em><a class="headerlink" href="#parser.asm_dtype.f128" title="Permalink to this definition"></a></dt>
+<dd><p>128Bit Float (Q-Register)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_dtype.f16">
+<span class="sig-name descname"><span class="pre">f16</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'h'</span></em><a class="headerlink" href="#parser.asm_dtype.f16" title="Permalink to this definition"></a></dt>
+<dd><p>16Bit Float (H-Register)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_dtype.f32">
+<span class="sig-name descname"><span class="pre">f32</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'s'</span></em><a class="headerlink" href="#parser.asm_dtype.f32" title="Permalink to this definition"></a></dt>
+<dd><p>32Bit Float (S-Register)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_dtype.f64">
+<span class="sig-name descname"><span class="pre">f64</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'d'</span></em><a class="headerlink" href="#parser.asm_dtype.f64" title="Permalink to this definition"></a></dt>
+<dd><p>64Bit Float (D-Register)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_dtype.f8">
+<span class="sig-name descname"><span class="pre">f8</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'b'</span></em><a class="headerlink" href="#parser.asm_dtype.f8" title="Permalink to this definition"></a></dt>
+<dd><p>8Bit Float (B-Register)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_dtype.i32">
+<span class="sig-name descname"><span class="pre">i32</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'w'</span></em><a class="headerlink" href="#parser.asm_dtype.i32" title="Permalink to this definition"></a></dt>
+<dd><p>32Bit Integer (W-Register)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_dtype.i64">
+<span class="sig-name descname"><span class="pre">i64</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'x'</span></em><a class="headerlink" href="#parser.asm_dtype.i64" title="Permalink to this definition"></a></dt>
+<dd><p>64Bit Integer (X-Register)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_dtype.sys_init">
+<span class="sig-name descname"><span class="pre">sys_init</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'SYS_INIT'</span></em><a class="headerlink" href="#parser.asm_dtype.sys_init" title="Permalink to this definition"></a></dt>
+<dd><p>Initial value</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="parser.asm_fnctype">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">parser.</span></span><span class="sig-name descname"><span class="pre">asm_fnctype</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parser.asm_fnctype" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>Contains the Types of user written and system generated funtions.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_fnctype.sys_fnc">
+<span class="sig-name descname"><span class="pre">sys_fnc</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'SYS_FNC'</span></em><a class="headerlink" href="#parser.asm_fnctype.sys_fnc" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_fnctype.undefined">
+<span class="sig-name descname"><span class="pre">undefined</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'UNDEFINED'</span></em><a class="headerlink" href="#parser.asm_fnctype.undefined" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_fnctype.user_fnc">
+<span class="sig-name descname"><span class="pre">user_fnc</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'USER_FNC'</span></em><a class="headerlink" href="#parser.asm_fnctype.user_fnc" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="parser.asm_ftype">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">parser.</span></span><span class="sig-name descname"><span class="pre">asm_ftype</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parser.asm_ftype" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>Functional Type od the Parameter
+Describes the functional type of the parameter (Options below)</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_ftype.general_purpose">
+<span class="sig-name descname"><span class="pre">general_purpose</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'GP'</span></em><a class="headerlink" href="#parser.asm_ftype.general_purpose" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_ftype.input">
+<span class="sig-name descname"><span class="pre">input</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'INPUT'</span></em><a class="headerlink" href="#parser.asm_ftype.input" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_ftype.output">
+<span class="sig-name descname"><span class="pre">output</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'OUTPUT'</span></em><a class="headerlink" href="#parser.asm_ftype.output" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_ftype.sys_init">
+<span class="sig-name descname"><span class="pre">sys_init</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'SYS_INIT'</span></em><a class="headerlink" href="#parser.asm_ftype.sys_init" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="parser.asm_function">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">parser.</span></span><span class="sig-name descname"><span class="pre">asm_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parser.asm_function" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="parser.asm_function.add_instruction">
+<span class="sig-name descname"><span class="pre">add_instruction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instruction</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#parser.asm_inst" title="parser.asm_inst"><span class="pre">parser.asm_inst</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parser.asm_function.add_instruction" title="Permalink to this definition"></a></dt>
+<dd><p>Adds an instruction to the given asm_function</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>instruction</strong> (<a class="reference internal" href="#parser.asm_inst" title="parser.asm_inst"><em>asm_inst</em></a>) – asm_ins to add</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="parser.asm_function.clean">
+<span class="sig-name descname"><span class="pre">clean</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#parser.asm_function.clean" title="Permalink to this definition"></a></dt>
+<dd><p>Cleans the given asm_function by deleting all doubled input parameter.
+A distinction is made between integer and float register (“W0 and X0” isn´t possible while “W0 and H0” is.)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="parser.asm_function.get_address_and_name">
+<span class="sig-name descname"><span class="pre">get_address_and_name</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#parser.asm_function.get_address_and_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="parser.asm_function.is_empty">
+<span class="sig-name descname"><span class="pre">is_empty</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#parser.asm_function.is_empty" title="Permalink to this definition"></a></dt>
+<dd><p>gives information about the amount in instructions in the given function</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>True if no instructions added to the function</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="parser.asm_function.set_name">
+<span class="sig-name descname"><span class="pre">set_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parser.asm_function.set_name" title="Permalink to this definition"></a></dt>
+<dd><p>Sets function name of the given function</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – name of the function</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="parser.asm_inst">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">parser.</span></span><span class="sig-name descname"><span class="pre">asm_inst</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">function</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">address</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hexValue</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instruction</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#parser.asm_itype" title="parser.asm_itype"><span class="pre">parser.asm_itype</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">asm_itype.unknown</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parser.asm_inst" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Represents a Assembler Instruction.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="parser.asm_inst.set_instruction">
+<span class="sig-name descname"><span class="pre">set_instruction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instruction</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parser.asm_inst.set_instruction" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="parser.asm_itype">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">parser.</span></span><span class="sig-name descname"><span class="pre">asm_itype</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parser.asm_itype" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>List of known ARM Instructions (not complete!!!)</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_itype.add">
+<span class="sig-name descname"><span class="pre">add</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'add'</span></em><a class="headerlink" href="#parser.asm_itype.add" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_itype.adr">
+<span class="sig-name descname"><span class="pre">adr</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'adr'</span></em><a class="headerlink" href="#parser.asm_itype.adr" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_itype.adrp">
+<span class="sig-name descname"><span class="pre">adrp</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'adrp'</span></em><a class="headerlink" href="#parser.asm_itype.adrp" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_itype.b">
+<span class="sig-name descname"><span class="pre">b</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'b'</span></em><a class="headerlink" href="#parser.asm_itype.b" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_itype.bl">
+<span class="sig-name descname"><span class="pre">bl</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'bl'</span></em><a class="headerlink" href="#parser.asm_itype.bl" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_itype.br">
+<span class="sig-name descname"><span class="pre">br</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'br'</span></em><a class="headerlink" href="#parser.asm_itype.br" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_itype.ldp">
+<span class="sig-name descname"><span class="pre">ldp</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'ldp'</span></em><a class="headerlink" href="#parser.asm_itype.ldp" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_itype.ldpsw">
+<span class="sig-name descname"><span class="pre">ldpsw</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'ldpsw'</span></em><a class="headerlink" href="#parser.asm_itype.ldpsw" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_itype.ldr">
+<span class="sig-name descname"><span class="pre">ldr</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'ldr'</span></em><a class="headerlink" href="#parser.asm_itype.ldr" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_itype.ldur">
+<span class="sig-name descname"><span class="pre">ldur</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'ldur'</span></em><a class="headerlink" href="#parser.asm_itype.ldur" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_itype.mov">
+<span class="sig-name descname"><span class="pre">mov</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'mov'</span></em><a class="headerlink" href="#parser.asm_itype.mov" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_itype.mul">
+<span class="sig-name descname"><span class="pre">mul</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'mul'</span></em><a class="headerlink" href="#parser.asm_itype.mul" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_itype.nop">
+<span class="sig-name descname"><span class="pre">nop</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'nop'</span></em><a class="headerlink" href="#parser.asm_itype.nop" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_itype.ret">
+<span class="sig-name descname"><span class="pre">ret</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'ret'</span></em><a class="headerlink" href="#parser.asm_itype.ret" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_itype.sdiv">
+<span class="sig-name descname"><span class="pre">sdiv</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'sdiv'</span></em><a class="headerlink" href="#parser.asm_itype.sdiv" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_itype.stp">
+<span class="sig-name descname"><span class="pre">stp</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'stp'</span></em><a class="headerlink" href="#parser.asm_itype.stp" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_itype.str">
+<span class="sig-name descname"><span class="pre">str</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'str'</span></em><a class="headerlink" href="#parser.asm_itype.str" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_itype.stur">
+<span class="sig-name descname"><span class="pre">stur</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'stur'</span></em><a class="headerlink" href="#parser.asm_itype.stur" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_itype.sub">
+<span class="sig-name descname"><span class="pre">sub</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'sub'</span></em><a class="headerlink" href="#parser.asm_itype.sub" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_itype.subs">
+<span class="sig-name descname"><span class="pre">subs</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'subs'</span></em><a class="headerlink" href="#parser.asm_itype.subs" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_itype.udf">
+<span class="sig-name descname"><span class="pre">udf</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'udf'</span></em><a class="headerlink" href="#parser.asm_itype.udf" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_itype.udiv">
+<span class="sig-name descname"><span class="pre">udiv</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'udiv'</span></em><a class="headerlink" href="#parser.asm_itype.udiv" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_itype.unknown">
+<span class="sig-name descname"><span class="pre">unknown</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'&lt;unknown&gt;'</span></em><a class="headerlink" href="#parser.asm_itype.unknown" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="parser.asm_param">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">parser.</span></span><span class="sig-name descname"><span class="pre">asm_param</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parser.asm_param" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Assembler Parameter</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>value</strong> – Value of the parameter</p></li>
+<li><p><strong>raw</strong> – Raw-Value of the parameter (before init)</p></li>
+<li><p><strong>ptype</strong> – Parameter-Type (Number, Pointer, Register)</p></li>
+<li><p><strong>ftype</strong> – Function-Type, indicates if the parameter is an Input-, Output- or General Purpose register.</p></li>
+<li><p><strong>dtype</strong> – Datatype of the given parameter</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="parser.asm_ptype">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">parser.</span></span><span class="sig-name descname"><span class="pre">asm_ptype</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parser.asm_ptype" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>Parameter Types
+Describes the type of the parameter (Options below)</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_ptype.address">
+<span class="sig-name descname"><span class="pre">address</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'ADDRESS'</span></em><a class="headerlink" href="#parser.asm_ptype.address" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_ptype.fnc_name">
+<span class="sig-name descname"><span class="pre">fnc_name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'FNC_NAME'</span></em><a class="headerlink" href="#parser.asm_ptype.fnc_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_ptype.hex_number">
+<span class="sig-name descname"><span class="pre">hex_number</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'HEX_NUMBER'</span></em><a class="headerlink" href="#parser.asm_ptype.hex_number" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_ptype.lr_pointer">
+<span class="sig-name descname"><span class="pre">lr_pointer</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'LR_POINTER'</span></em><a class="headerlink" href="#parser.asm_ptype.lr_pointer" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_ptype.number">
+<span class="sig-name descname"><span class="pre">number</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'NUMBER'</span></em><a class="headerlink" href="#parser.asm_ptype.number" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_ptype.pc_pointer">
+<span class="sig-name descname"><span class="pre">pc_pointer</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'PC_POINTER'</span></em><a class="headerlink" href="#parser.asm_ptype.pc_pointer" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_ptype.register">
+<span class="sig-name descname"><span class="pre">register</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'REGISTER'</span></em><a class="headerlink" href="#parser.asm_ptype.register" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_ptype.sp_address">
+<span class="sig-name descname"><span class="pre">sp_address</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'SP_ADDRESS'</span></em><a class="headerlink" href="#parser.asm_ptype.sp_address" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_ptype.sp_pointer">
+<span class="sig-name descname"><span class="pre">sp_pointer</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'SP_POINTER'</span></em><a class="headerlink" href="#parser.asm_ptype.sp_pointer" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_ptype.sys_init">
+<span class="sig-name descname"><span class="pre">sys_init</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'SYS_INIT'</span></em><a class="headerlink" href="#parser.asm_ptype.sys_init" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="parser.asm_ptype.unkown">
+<span class="sig-name descname"><span class="pre">unkown</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'UNKNOWN'</span></em><a class="headerlink" href="#parser.asm_ptype.unkown" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="parser.parse_asm">
+<span class="sig-prename descclassname"><span class="pre">parser.</span></span><span class="sig-name descname"><span class="pre">parse_asm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raw_asm</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#parser.parsed_asm_list" title="parser.parsed_asm_list"><span class="pre">parser.parsed_asm_list</span></a></span></span><a class="headerlink" href="#parser.parse_asm" title="Permalink to this definition"></a></dt>
+<dd><p>!!!!DEPRECATED!!!!
+Parses the raw asm_list, which is deliverd by the disabembler</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>raw_asm</strong> (<em>str</em>) – raw_asm list (of disasembler)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Object with parsed asm_functions</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#parser.parsed_asm_list" title="parser.parsed_asm_list">parsed_asm_list</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="parser.parse_raw_asm">
+<span class="sig-prename descclassname"><span class="pre">parser.</span></span><span class="sig-name descname"><span class="pre">parse_raw_asm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raw_asm</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="disasmler.html#disasmler.disasembled_raw" title="disasmler.disasembled_raw"><span class="pre">disasmler.disasembled_raw</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#parser.parsed_asm_list" title="parser.parsed_asm_list"><span class="pre">parser.parsed_asm_list</span></a></span></span><a class="headerlink" href="#parser.parse_raw_asm" title="Permalink to this definition"></a></dt>
+<dd><p>Parses the raw asm_list, which is deliverd by the disabembler</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>raw_asm</strong> (<em>str</em>) – raw_asm list (of disasembler)</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Object with parsed asm_functions</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#parser.parsed_asm_list" title="parser.parsed_asm_list">parsed_asm_list</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="parser.parsed_asm_list">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">parser.</span></span><span class="sig-name descname"><span class="pre">parsed_asm_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">magic</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cputype</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cpu_subtype</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filetype</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sizeofcmds</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parser.parsed_asm_list" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Parsed asm list</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>functions</strong> (<em>list</em><em>[</em><a class="reference internal" href="#parser.asm_function" title="parser.asm_function"><em>asm_function</em></a><em>]</em>) – list with all asm_functions</p></li>
+<li><p><strong>const_str</strong> (<a class="reference internal" href="#parser.asm_function" title="parser.asm_function"><em>asm_function</em></a>) – function with the string constants</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="parser.parsed_asm_list.append_function">
+<span class="sig-name descname"><span class="pre">append_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">function</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#parser.asm_function" title="parser.asm_function"><span class="pre">parser.asm_function</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parser.parsed_asm_list.append_function" title="Permalink to this definition"></a></dt>
+<dd><p>Adds an function to the parsed asm list</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>function</strong> (<a class="reference internal" href="#parser.asm_function" title="parser.asm_function"><em>asm_function</em></a>) – the function to be added</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="parser.parsed_asm_list.get_const_string_by_address">
+<span class="sig-name descname"><span class="pre">get_const_string_by_address</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">address</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#parser.parsed_asm_list.get_const_string_by_address" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the constant of the given address
+formerly const section (Mach-O)
+:param address: adress of the constant
+:type address: str
+:return: value of the constant
+:rtype: str</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="parser.parsed_asm_list.get_function_name_name_by_address">
+<span class="sig-name descname"><span class="pre">get_function_name_name_by_address</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">address</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#parser.parsed_asm_list.get_function_name_name_by_address" title="Permalink to this definition"></a></dt>
+<dd><p>Returns the constant string of the given address
+formerly cstring section (Mach-O)
+:param address: adress of the constant
+:type address: str
+:return: value of the constant
+:rtype: str</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="parser.parsed_asm_list.set_const_string_with_address">
+<span class="sig-name descname"><span class="pre">set_const_string_with_address</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">address</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">const</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parser.parsed_asm_list.set_const_string_with_address" title="Permalink to this definition"></a></dt>
+<dd><p>adds an constand and its adress.
+represents the constant section (Mach-O)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>address</strong> (<em>str</em>) – adress of the constant</p></li>
+<li><p><strong>const</strong> – value of the constant</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="parser.parsed_asm_list.set_function_name_with_address">
+<span class="sig-name descname"><span class="pre">set_function_name_with_address</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">address</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">txt</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#parser.parsed_asm_list.set_function_name_with_address" title="Permalink to this definition"></a></dt>
+<dd><p>adds an (constant) string and its adress
+represents the cstring section (Mach-O)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>address</strong> (<em>str</em>) – adress of the constant string</p></li>
+<li><p><strong>txt</strong> (<em>str</em>) – valu of the constant text</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="log.html" class="btn btn-neutral float-left" title="log module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2021, Sebastian Kunz.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

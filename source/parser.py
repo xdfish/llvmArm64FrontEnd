@@ -542,7 +542,7 @@ def parse_raw_asm(raw_asm: disasembled_raw) -> parsed_asm_list:
 
     # ADDIOTIONAL FUNCTIONS (NOT DYNAMIC LINKED)
     for f in asm_list.functions:
-        tmp = f.get_address_name()
+        tmp = f.get_address_and_name()
         asm_list.set_function_name_with_address(tmp[0], tmp[1])
     log(os.path.basename(__file__), "-> user_functions analyzed (DONE)")
 

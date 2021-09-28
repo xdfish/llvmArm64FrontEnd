@@ -12,7 +12,6 @@ def log(module: str, msg: str):
     :param msg: Message for the output
     :type msg: str
     """
-    
     text = "{}:\t\t{}".format(module, msg)
     print(text)
     if export_log:
@@ -24,7 +23,6 @@ def export_log(txt: str):
     :param txt: text added to the file
     :type txt: str
     """
-
     now = datetime.now()
     current_time = now.strftime("%H:%M:%S")
     directory = "../tmp"

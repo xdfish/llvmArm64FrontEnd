@@ -1,8 +1,9 @@
 from log import log
 from enum import Enum
 import os.path
+from disasmler import disasembled_raw
 
-"""
+""""
 TODO:\n
 -> Sections unterscheiden, damit man Funktionen mit Namen wie _cstring im Data-Bereich von Funktionen im Text-Bereich abgrenzen kann.\n
 -> Konstanten Section in asm_list aufnahmen (aktuell keine implementierung zur Erkennung)\n
@@ -19,9 +20,11 @@ class asm_ptype(Enum):
     lr_pointer = "LR_POINTER"
     pc_pointer = "PC_POINTER"
     number = "NUMBER"
+    hex_number = "HEX_NUMBER"
     register = "REGISTER"
     address = "ADDRESS"
     sp_address = "SP_ADDRESS"
+    fnc_name = "FNC_NAME"
     unkown = "UNKNOWN"
 
 class asm_ftype(Enum):
@@ -99,6 +102,8 @@ class asm_itype(Enum):
     bl = "bl"
     stp = "stp"
     nop = "nop"
+    sdiv = "sdiv"
+    udiv = "udiv"
     b = "b"
     unknown = "<unknown>"
 
@@ -170,27 +175,37 @@ class asm_param:
         elif value == "lr":
             self.ptype = asm_ptype.lr_pointer
         
-        #Absolute Values
+        #Absolute Value
         elif value[0] == "#":
             self.ptype = asm_ptype.number
             self.value = value[1:]
 
-        #Registers
+        elif value[0] == "_":
+            self.ptype = asm_ptype.fnc_name
+            self.value = value[1:]
+
+        #Absolute Hex Value
+        elif value[0:1] == "0x":
+            self.ptype = asm_ptype.hex_number
+            self.value = value[2:]
+
+        
+        #Register
         elif value[0] in supported_register_types:
             self.ptype = asm_ptype.register
             if value[0] == "w":           #32Bit Integer
                 self.dtype = asm_dtype.i32
             elif value[0] == "x":         #64Bit Integer
                 self.dtype = asm_dtype.i64
-            elif value[0] == "b":         #Float (128B to 8Bit) incomming
+            elif value[0] == "b":         #Float (128B to 8Bit)
                 self.dtype = asm_dtype.f8
-            elif value[0] == "h":         #Float (128B to 8Bit) incomming
+            elif value[0] == "h":         #Float (128B to 8Bit)
                 self.dtype = asm_dtype.f16
-            elif value[0] == "s":         #Float (128B to 8Bit) incomming
+            elif value[0] == "s":         #Float (128B to 8Bit)
                 self.dtype = asm_dtype.f32
-            elif value[0] == "d":         #Float (128B to 8Bit) incomming
+            elif value[0] == "d":         #Float (128B to 8Bit)
                 self.dtype = asm_dtype.f64
-            elif value[0] == "q":         #Float (128B to 8Bit) incomming
+            elif value[0] == "q":         #Float (128B to 8Bit)
                 self.dtype = asm_dtype.f128
             
             #new value (absolute value)
@@ -216,7 +231,7 @@ class asm_param:
                 self.ptype = asm_ptype.address
             self.value = value[1:-1]
         
-        #Unknown Types
+        #Unknown Type
         else:
             self.ptype = asm_ptype.unkown
 
@@ -233,7 +248,6 @@ class asm_function:
         self.input_parameter: list[asm_param] = []
         self.return_parameter: asm_param = asm_param("INIT")
         self.set_name(name)
-        
         
     def set_name(self, name: str):
         """
@@ -295,6 +309,9 @@ class asm_function:
                     deletable_params.append(i)
         for i in deletable_params:
             self.input_parameter.remove(i)
+    
+    def get_address_and_name(self) -> list:
+        return [self.instructions[0].address, self.instructions[0].function]
             
 class parsed_asm_list:
     """
@@ -305,8 +322,7 @@ class parsed_asm_list:
     :param const_str:   function with the string constants
     :type const_str:    asm_function
     """
-    def __init__(self, filename: str = None, format: str = None, architecture: str = None, execformat: str = None):
-        
+    def __init__(self, filename: str = None, magic: str = None, cputype: str = None, cpu_subtype: str = None, filetype: str = None, sizeofcmds: str = None):
         """
         :param filename: Filename of the parsed assembler file, defaults to None
         :type filename: str, optional
@@ -317,15 +333,38 @@ class parsed_asm_list:
         :param execformat: execution format of the parsed assembler code, defaults to None
         :type execformat: str, optional
         """
-
         self.filename: str = filename
-        self.format: str = format
-        self.architecure: str = architecture
-        self.execformat: str = execformat
+        self.magic: str = magic
+        self.cputype: str = cputype
+        self.cpu_subtype: str = cpu_subtype
+        self.filetype: str = filetype
+        self.sizeofcmds: str = sizeofcmds
 
+        self.function_table: dict = {}
+        self.cstring_table: dict = {}
+        self.const_table: dict = {}
         self.functions = []
-        self.const_str = None
 
+    def set_const_string_with_address(self, address: str, txt: str):
+        self.cstring_table[address] = txt
+
+    def set_function_name_with_address(self, address: str, txt: str):
+        self.function_table[address] = txt
+
+    def get_const_string_by_address(self, address: str) -> str:
+        if address in self.cstring_table:
+            return self.cstring_table[address]
+        elif address in self.const_table:
+            return self.const_table[address]
+        else:
+            return None
+    
+    def get_function_name_name_by_address(self, address: str) -> str:
+        if address in self.function_table:
+            return self.function_table[address]
+        else: 
+            return None
+        
     def append_function(self, function : asm_function):
         """Adds an function to the parsed asm list
 
@@ -364,8 +403,7 @@ def parse_asm(raw_asm: str) -> parsed_asm_list:
             architecture = format[1]
             execformat = format[0]
 
-        if len(line) >= 17:
-            
+        if len(line) >= 17:  
             #Instruction
             if line[9] == ":":           #Instruction
                 asm: asm_inst = asm_inst()
@@ -412,3 +450,102 @@ def parse_asm(raw_asm: str) -> parsed_asm_list:
                 
     print("PARSER (Overview) ---------------\n\t|-> Architecture: \t{}\n\t|-> Executeable Format:\t{} \n\t|-> Instructions: \t{}\n\t|-> Functions: \t\t{}\n\t'-> Sucessfull:\t\t{}\n---------------------------------".format(architecture, execformat, instCount, len(asm_list.functions), parserStatus))
     return asm_list
+
+def parse_raw_asm(raw_asm: disasembled_raw) -> parsed_asm_list:
+    """
+    Parses the raw asm_list, which is deliverd by the disabembler
+
+    :param raw_asm: raw_asm list (of disasembler)
+    :type raw_asm: str
+    :return: Object with parsed asm_functions
+    :rtype: parsed_asm_list
+    """
+    log(os.path.basename(__file__), "Parsing assembler code of {}".format(raw_asm.filename))
+    asm_list: parsed_asm_list = None
+
+
+    ### HEADER ###
+    header_list = " ".join(raw_asm.private_header[-1].split()).split(" ")
+    asm_list = parsed_asm_list(filename=raw_asm.filename, magic=header_list[0], cputype=header_list[1], cpu_subtype=header_list[2], filetype=header_list[4], sizeofcmds=header_list[6])
+    log(os.path.basename(__file__), "-> private_header (DONE)")
+
+    ### TEXT-SECTION ###
+    instCount = 0
+    curFunction = "nA"
+    asm_fnc = asm_function()
+    for i, line in enumerate(raw_asm.text_section):
+        #Ignore first two lines (only info)
+        if i < 2: 
+            continue
+        #Functionlabel
+        if (line[0] == "_" and line[-1] == ":") or line is raw_asm.text_section[-1]:           
+                if not asm_fnc.is_empty():
+                    asm_fnc.set_name(curFunction)
+                    asm_fnc.clean()
+                    asm_list.append_function(asm_fnc)
+                    asm_fnc = asm_function()
+                curFunction = line[1:-1]
+        #Instruction
+        else:
+            line_l = line.split("\t")
+            asm: asm_inst = asm_inst()
+            asm.function = curFunction
+            asm.address = line_l[0]
+            asm.hexValue = line_l[1].replace(" ", "")
+
+            asm.set_instruction(line_l[2])
+
+            #Instruction with parameters
+            params = []
+            if len(line_l) >= 4:
+                params = line_l[3].split(", ")
+                tmp = []
+                for i, p in enumerate(params):
+                    param = None
+                    #Stack-address
+                    if p[0] == "[" and p[-1] != "]":
+                        param = asm_param(p + "_" + params[i+1])
+                    else:    
+                    #Page-address (adrp)
+                        if " ; " in p:
+                            param = asm_param(p.split(" ; ")[-1]) 
+                    #Register, values etc.
+                        else:
+                            param = asm_param(p)
+                    tmp.append(param)   
+                asm.params = tmp.copy()                  
+            asm_fnc.add_instruction(asm)
+            instCount += 1
+    log(os.path.basename(__file__), "-> text_section (DONE)")
+
+    ### CSTRING-SECTION ###
+    for i, line in enumerate(raw_asm.cstring_section):
+        if i < 2:
+            continue
+        else:
+            asm_list.set_const_string_with_address(line[:16], line[18:])
+    log(os.path.basename(__file__), "-> cstring_section (DONE)")
+
+    ### SYMBOL-TABLE ###
+    marker: bool = False
+    for i, line in enumerate(raw_asm.symbol_table):
+        #Skip two title lines
+        if "(__" in line and ")" in line and "entries" in line or marker:
+            marker = not marker
+            continue
+        else:
+            tmp_line = " ".join(line.split()).split(" ")
+            tmp_address = tmp_line[0].split("0x")[-1]
+            tmp_fnc_name = tmp_line[-1][1:]
+            asm_list.set_function_name_with_address(tmp_address, tmp_fnc_name)
+    log(os.path.basename(__file__), "-> symbol_table (DONE)")
+
+    # ADDIOTIONAL FUNCTIONS (NOT DYNAMIC LINKED)
+    for f in asm_list.functions:
+        tmp = f.get_address_name()
+        asm_list.set_function_name_with_address(tmp[0], tmp[1])
+    log(os.path.basename(__file__), "-> user_functions analyzed (DONE)")
+
+    log(os.path.basename(__file__), "COMPLETE\n")
+    return asm_list
+

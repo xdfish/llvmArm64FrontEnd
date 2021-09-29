@@ -1,5 +1,4 @@
 from enum import Enum
-from os import name
 import inspect
 
 #Languange Reference for LLVM-IR:

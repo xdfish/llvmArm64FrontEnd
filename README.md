@@ -1,7 +1,7 @@
 # llvmArm64FrontEnd
 This tool converts arm64 mac executeables (mach-o) to llvm-IR.
 
-STARTOPTIONS:
+
 $ llvmArm64FrontEnd [ --version | --help ]
 
 	--version	    - Display the version of this program

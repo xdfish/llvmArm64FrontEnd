@@ -26,8 +26,13 @@ def generate_llvm_ir_of_arm64():
     Controls the workflow of the toolchain
     """
     global inp_filepath
+    global out_filename
+
     if not inp_filepath:
         inp_filepath = input("@-> Enter filename(and path): ")
+    if not out_filename:
+            out_filename = seperate_filename(inp_filepath)
+            
     input("@-> Press ENTER to start disassembling file: \{}".format(inp_filepath))
     asm_raw = disasembler.disasembled_raw(inp_filepath, export).disasemble()
     if not asm_raw:

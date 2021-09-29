@@ -1,11 +1,10 @@
 from source.log import log
 import sys
 import os
-from pathlib import Path
 sys.path.insert(1, './source')
 
 import source.parser as parser
-import source.disasmler as disasembler
+import source.disassembler as disassembler
 import source.converter as converter
 
 
@@ -32,9 +31,9 @@ def generate_llvm_ir_of_arm64():
         inp_filepath = input("@-> Enter filename(and path): ")
     if not out_filename:
             out_filename = seperate_filename(inp_filepath)
-            
+
     input("@-> Press ENTER to start disassembling file: \{}".format(inp_filepath))
-    asm_raw = disasembler.disasembled_raw(inp_filepath, export).disasemble()
+    asm_raw = disassembler.disasembled_raw(inp_filepath, export).disasemble()
     if not asm_raw:
         return
     inp_filepath = seperate_filename(inp_filepath)

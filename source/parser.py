@@ -1,7 +1,7 @@
 from log import log
 from enum import Enum
 import os.path
-from disasmler import disasembled_raw
+from disassembler import disasembled_raw
 
 """"
 TODO:\n

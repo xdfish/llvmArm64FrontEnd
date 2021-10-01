@@ -141,7 +141,6 @@ class asm_inst:
             self.instruction = asm_itype.unknown
             print("Instruction {} not supported".format(instruction))
 
-
     def __str__(self) -> str:
         tmp = "{}\t".format(self.instruction)
         for i, p in enumerate(self.params):
@@ -512,20 +511,23 @@ def parse_raw_asm(raw_asm: disasembled_raw) -> parsed_asm_list:
 
     ### TEXT-SECTION ###
     instCount = 0
-    curFunction = "nA"
+    fnc_count = 0
+    stripped = True
+    curFunction = "unkown_0"
     asm_fnc = asm_function()
     for i, line in enumerate(raw_asm.text_section):
         #Ignore first two lines (only info)
         if i < 2: 
             continue
-        #Functionlabel
+
+        #Functionlabel (if not stripped)
+        asm_fnc.set_name(curFunction)
         if (line[0] == "_" and line[-1] == ":") or line is raw_asm.text_section[-1]:           
-                if not asm_fnc.is_empty():
-                    asm_fnc.set_name(curFunction)
-                    asm_fnc.clean()
-                    asm_list.append_function(asm_fnc)
-                    asm_fnc = asm_function()
-                curFunction = line[1:-1]
+                stripped = False
+                if line[0] == "_":
+                    curFunction = line[1:-1]
+                else:
+                    curFunction = line[:-1]
         #Instruction
         else:
             line_l = line.split("\t")
@@ -556,6 +558,16 @@ def parse_raw_asm(raw_asm: disasembled_raw) -> parsed_asm_list:
                     tmp.append(param)   
                 asm.params = tmp.copy()                  
             asm_fnc.add_instruction(asm)
+            
+            #NEW FUNCTION (cause return inst)
+            if asm.instruction is asm_itype.ret:
+                if not asm_fnc.is_empty(): #No really needed
+                    asm_fnc.clean()
+                    asm_list.append_function(asm_fnc)
+                    asm_fnc = asm_function()
+                    fnc_count += 1
+                    if stripped:
+                        curFunction = "unknown_{}".format(fnc_count)
             instCount += 1
     log(os.path.basename(__file__), "-> text_section (DONE)")
 

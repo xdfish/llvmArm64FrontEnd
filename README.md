@@ -1,7 +1,14 @@
 # llvmArm64FrontEnd
-This tool converts arm64 mac executeables (mach-o) to llvm-IR.
+This tool converts arm64 mac executeables (mach-o) to llvm-IR (intermediate Representation, .ll) files.
+
+<h1>Quickstart</h1>
+1. use the following command for start the transformation process for an arm mach-o executeable:
+	$ python3 llvmArm64FrontEnd.py <executeable_file>
+
+2. your done :)
 
 
+<h1> Startarguments </h1>
 $ llvmArm64FrontEnd [ --version | --help ]
 
 	--version	    - Display the version of this program

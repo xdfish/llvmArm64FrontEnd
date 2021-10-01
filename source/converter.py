@@ -1,6 +1,6 @@
 import copy as cp
 
-from .parser import asm_inst, asm_function, parsed_asm_list, asm_ptype, asm_dtype, asm_itype
+from .arm_parser import asm_inst, asm_function, parsed_asm_list, asm_ptype, asm_dtype, asm_itype
 from irtypes import ir_file, ir_function, ir_var, ir_val, ir_dtype, ir_fnc_var, ir_fnc_ret_var, irbb_add, irbb_alloca, irbb_load, irbb_return, irbb_store, irbb_sub, irbb_mul
 
 detail_count = 1

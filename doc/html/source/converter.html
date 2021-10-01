@@ -18,7 +18,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="disasmler module" href="disasmler.html" />
+    <link rel="next" title="disassembler module" href="disassembler.html" />
     <link rel="prev" title="source" href="modules.html" /> 
 </head>
 
@@ -42,8 +42,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../modules.html">llvmArm64FrontEnd</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">source</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">converter module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="disasmler.html">disasmler module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="irgen.html">irgen module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="disassembler.html">disassembler module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="irtypes.html">irtypes module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="log.html">log module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="parser.html">parser module</a></li>
@@ -76,8 +75,94 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="converter-module">
-<h1>converter module<a class="headerlink" href="#converter-module" title="Permalink to this headline"></a></h1>
+  <section id="module-converter">
+<span id="converter-module"></span><h1>converter module<a class="headerlink" href="#module-converter" title="Permalink to this headline"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="converter.analyze_asm">
+<span class="sig-prename descclassname"><span class="pre">converter.</span></span><span class="sig-name descname"><span class="pre">analyze_asm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">asm_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="parser.html#parser.parsed_asm_list" title="parser.parsed_asm_list"><span class="pre">parser.parsed_asm_list</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="irtypes.html#irtypes.ir_file" title="irtypes.ir_file"><span class="pre">irtypes.ir_file</span></a></span></span><a class="headerlink" href="#converter.analyze_asm" title="Permalink to this definition"></a></dt>
+<dd><p>analyzes the given, parsedn asm data</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>asm_list</strong> (<a class="reference internal" href="parser.html#parser.parsed_asm_list" title="parser.parsed_asm_list"><em>parsed_asm_list</em></a>) – [dparsed asm data</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>llvm ir file</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="irtypes.html#irtypes.ir_file" title="irtypes.ir_file">ir_file</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="converter.analyze_str_constants">
+<span class="sig-prename descclassname"><span class="pre">converter.</span></span><span class="sig-name descname"><span class="pre">analyze_str_constants</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">asm_list</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="parser.html#parser.parsed_asm_list" title="parser.parsed_asm_list"><span class="pre">parser.parsed_asm_list</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="headerlink" href="#converter.analyze_str_constants" title="Permalink to this definition"></a></dt>
+<dd><p>DEPRECATED
+Analyzes the __cstring section of the parsed asm list and returns the string constant in it</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>asm_list</strong> (<a class="reference internal" href="parser.html#parser.parsed_asm_list" title="parser.parsed_asm_list"><em>parsed_asm_list</em></a>) – parsed asm list, with the strong section in it</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>a list of bytearrays with the single strings</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list[bytearray]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="converter.convert_function">
+<span class="sig-prename descclassname"><span class="pre">converter.</span></span><span class="sig-name descname"><span class="pre">convert_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fnc</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="parser.html#parser.asm_function" title="parser.asm_function"><span class="pre">parser.asm_function</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="irtypes.html#irtypes.ir_function" title="irtypes.ir_function"><span class="pre">irtypes.ir_function</span></a></span></span><a class="headerlink" href="#converter.convert_function" title="Permalink to this definition"></a></dt>
+<dd><p>converts an assembler function into an llvm ir function</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>fnc</strong> (<a class="reference internal" href="parser.html#parser.asm_function" title="parser.asm_function"><em>asm_function</em></a>) – funtion to convert</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>converted function</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="irtypes.html#irtypes.ir_function" title="irtypes.ir_function">ir_function</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="converter.prepare_for_conversion">
+<span class="sig-prename descclassname"><span class="pre">converter.</span></span><span class="sig-name descname"><span class="pre">prepare_for_conversion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fnc</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="parser.html#parser.asm_function" title="parser.asm_function"><span class="pre">parser.asm_function</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#converter.prepare_for_conversion" title="Permalink to this definition"></a></dt>
+<dd><p>Perparation for the conversion performs a clean process (deleting unnecessary parts of the asm code) and a renaming of all variables
+:param fnc: assembler function (see: parser.asm_function)
+:type fnc: asm_function</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="converter.show_details_overview">
+<span class="sig-prename descclassname"><span class="pre">converter.</span></span><span class="sig-name descname"><span class="pre">show_details_overview</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">asm_fnc</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="parser.html#parser.asm_function" title="parser.asm_function"><span class="pre">parser.asm_function</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#converter.show_details_overview" title="Permalink to this definition"></a></dt>
+<dd><p>Prints function details, of the parsed asm_functions</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>asm_fnc</strong> (<em>asm_fnc</em>) – The function to be analyzed</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="converter.show_details_prepare">
+<span class="sig-prename descclassname"><span class="pre">converter.</span></span><span class="sig-name descname"><span class="pre">show_details_prepare</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">function_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">removeable_count</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">translation</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#converter.show_details_prepare" title="Permalink to this definition"></a></dt>
+<dd><p>Prints the prepartion information</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>function_name</strong> (<em>str</em>) – functionname</p></li>
+<li><p><strong>removeable_count</strong> (<em>int</em>) – amount of translated variables</p></li>
+<li><p><strong>translation</strong> (<em>dict</em>) – translation table (as a dict)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 
@@ -85,7 +170,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="modules.html" class="btn btn-neutral float-left" title="source" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="disasmler.html" class="btn btn-neutral float-right" title="disasmler module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="disassembler.html" class="btn btn-neutral float-right" title="disassembler module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

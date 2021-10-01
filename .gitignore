@@ -1,7 +1,10 @@
 .DS_Store
 /source/__pycache__/
 /source/log.pyc
-/sphinx/
+/sphinx/_build
+/sphinx/_static
+/sphinx/_rst
+/sphinx/_templates
 /tmp/log.txt
 /__pycache__/
 /test/

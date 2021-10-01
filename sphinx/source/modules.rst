@@ -5,8 +5,7 @@ source
    :maxdepth: 4
 
    converter
-   disasmler
-   irgen
+   disassembler
    irtypes
    log
    parser

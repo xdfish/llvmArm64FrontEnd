@@ -7,6 +7,7 @@ from log import log
 #Only for Development
 def decompile_without_hex_rep(filename: str, export: bool) -> any:
     """
+    DEVELOPMENT ONLY
     Disasembles an executeable to an assember listing without the hex representation of the Instructions
     This function is currently not in use for the ztransofmration process.
 
@@ -33,6 +34,7 @@ def decompile_without_hex_rep(filename: str, export: bool) -> any:
 #Only for Development
 def decompile(filename, export):
     """
+    DEVELOPMENT ONLY
     Disasembles an executeable to an assembler listing with the hex-representation of the instructions
 
     :param filename: filename (and path) to the file

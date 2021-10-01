@@ -3,7 +3,7 @@ import sys
 import os
 sys.path.insert(1, './source')
 
-import source.parser as parser
+import source.arm_parser as parser
 import source.disassembler as disassembler
 import source.converter as converter
 
@@ -88,7 +88,6 @@ def run():
     print(load_cfg_txt(CFG_HEAD_FILE))
     generate_llvm_ir_of_arm64()
     
-
 def export_file(filename: str, data: str):
     """Exports a file, and the file path (if not exits)
 
